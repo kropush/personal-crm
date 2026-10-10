@@ -1,0 +1,25 @@
+name: personal-crm
+
+services:
+  postgres:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is not set in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is not set in .env}
+    ports:
+      # Published on localhost only, so the database is not reachable from the network
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # postgres:18+ keeps its data under /var/lib/postgresql (not /var/lib/postgresql/data)
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      # -h localhost: checks TCP, so the check stays red until first-run initialization is over
+      test: ["CMD-SHELL", "pg_isready -h localhost -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  postgres-data:
