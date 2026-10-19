@@ -1,13 +1,17 @@
+import { Pencil } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-import { BackToContactsLink } from "@/components/back-to-contacts-link";
+import { BackLink } from "@/components/back-link";
 import { ContactAvatar } from "@/components/contact-avatar";
 import { NoteForm } from "@/components/note-form";
+import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getContact, getNotes } from "@/lib/contacts";
 import { formatDateTime, getPhoneHref } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { parseContactId } from "@/lib/validation";
 
 type Params = PageProps<"/contacts/[id]">["params"];
@@ -28,7 +32,7 @@ export async function generateMetadata({
 export default function ContactPage({ params }: PageProps<"/contacts/[id]">) {
   return (
     <main className="flex flex-col gap-6">
-      <BackToContactsLink />
+      <BackLink href="/">Все контакты</BackLink>
       <Suspense fallback={<ContactCardSkeleton />}>
         <ContactCard params={params} />
       </Suspense>
@@ -48,7 +52,7 @@ async function ContactCard({ params }: { params: Params }) {
     <>
       <header className="flex items-center gap-4">
         <ContactAvatar name={contact.name} className="size-14 text-lg" />
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-semibold tracking-tight break-words">
             {contact.name}
           </h1>
@@ -56,6 +60,19 @@ async function ContactCard({ params }: { params: Params }) {
             <p className="break-words text-muted-foreground">{contact.about}</p>
           )}
         </div>
+        <Link
+          href={`/contacts/${contact.id}/edit`}
+          aria-label="Изменить контакт"
+          // cn() lets the outline border win over the base transparent one
+          className={cn(
+            buttonVariants({ variant: "outline", size: "lg" }),
+            "px-2.5 sm:px-3.5",
+          )}
+        >
+          <Pencil />
+          {/* Icon only on phones, so the name keeps the room it needs */}
+          <span className="hidden sm:inline">Изменить</span>
+        </Link>
       </header>
 
       {(contact.howWeMet || contact.phone || contact.email) && (
@@ -139,10 +156,11 @@ function ContactCardSkeleton() {
     <div className="flex flex-col gap-6" aria-hidden>
       <div className="flex items-center gap-4">
         <Skeleton className="size-14 rounded-full" />
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-1 flex-col gap-2">
           <Skeleton className="h-7 w-56" />
           <Skeleton className="h-4 w-40" />
         </div>
+        <Skeleton className="h-9 w-9 rounded-lg sm:w-28" />
       </div>
       <Skeleton className="h-28 w-full rounded-xl" />
       <Skeleton className="h-7 w-28" />

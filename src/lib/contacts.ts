@@ -85,14 +85,27 @@ export async function getNotes(contactId: number) {
     .orderBy(desc(notes.createdAt), desc(notes.id));
 }
 
-export async function createContact(
-  values: Pick<NewContact, "name" | "about" | "howWeMet" | "phone" | "email">,
-) {
+type ContactDetails = Pick<
+  NewContact,
+  "name" | "about" | "howWeMet" | "phone" | "email"
+>;
+
+export async function createContact(values: ContactDetails) {
   const [created] = await db
     .insert(contacts)
     .values(values)
     .returning({ id: contacts.id });
   return created.id;
+}
+
+// Returns false when there is no contact with this id
+export async function updateContact(id: number, values: ContactDetails) {
+  const updated = await db
+    .update(contacts)
+    .set(values)
+    .where(eq(contacts.id, id))
+    .returning({ id: contacts.id });
+  return updated.length > 0;
 }
 
 export async function addNote(contactId: number, body: string) {

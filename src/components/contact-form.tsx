@@ -2,9 +2,10 @@
 
 import { LoaderCircle } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef } from "react";
 
-import { createContactAction } from "@/app/actions";
+import { createContactAction, updateContactAction } from "@/app/actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Field,
@@ -15,17 +16,36 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { CONTACT_LIMITS, type ContactFormState } from "@/lib/validation";
+import { CONTACT_LIMITS, type ContactFormValues } from "@/lib/validation";
 
-const initialState: ContactFormState = {
-  values: { name: "", about: "", howWeMet: "", phone: "", email: "" },
-  fieldErrors: {},
+const EMPTY_VALUES: ContactFormValues = {
+  name: "",
+  about: "",
+  howWeMet: "",
+  phone: "",
+  email: "",
 };
 
-export function ContactForm() {
+type ContactFormProps = {
+  // Given when editing an existing contact; without it the form adds a new one
+  contact?: { id: number; values: ContactFormValues };
+};
+
+export function ContactForm(props: ContactFormProps) {
+  // Next.js keeps a page mounted after the user leaves it, with whatever was
+  // typed. A new key on every fresh visit starts the form from the saved data
+  // instead of an abandoned draft, while the browser's Back button still
+  // brings the draft back.
+  const { bfcacheId } = useRouter();
+  return <ContactFormFields key={bfcacheId} {...props} />;
+}
+
+function ContactFormFields({ contact }: ContactFormProps) {
   const [state, formAction, isPending] = useActionState(
-    createContactAction,
-    initialState,
+    contact
+      ? updateContactAction.bind(null, contact.id)
+      : createContactAction,
+    { values: contact?.values ?? EMPTY_VALUES, fieldErrors: {} },
   );
   const formRef = useRef<HTMLFormElement>(null);
   const { values, fieldErrors, formError } = state;
@@ -126,8 +146,9 @@ export function ContactForm() {
         </div>
 
         <FieldDescription>
-          Обязательно только имя. Заметки о разговорах можно будет добавлять в
-          карточке контакта.
+          {contact
+            ? "Обязательно только имя."
+            : "Обязательно только имя. Заметки о разговорах можно будет добавлять в карточке контакта."}
         </FieldDescription>
 
         {formError && <FieldError>{formError}</FieldError>}
@@ -135,10 +156,10 @@ export function ContactForm() {
         <div className="flex items-center gap-2">
           <Button type="submit" size="lg" className="px-3.5" disabled={isPending}>
             {isPending && <LoaderCircle className="animate-spin" />}
-            Сохранить контакт
+            {contact ? "Сохранить изменения" : "Сохранить контакт"}
           </Button>
           <Link
-            href="/"
+            href={contact ? `/contacts/${contact.id}` : "/"}
             className={buttonVariants({
               variant: "ghost",
               size: "lg",
