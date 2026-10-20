@@ -5,6 +5,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { countContacts, findContactsByName } from "@/lib/contacts";
 import { formatNumber, pluralize } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { parseContactId } from "@/lib/validation";
 
 type SearchParams = PageProps<"/">["searchParams"];
@@ -46,7 +47,8 @@ export async function ContactList({
         title="Никого не нашлось"
         description={`По запросу «${query}» нет контактов. Проверьте, нет ли опечатки в имени.`}
       >
-        <Link href="/" className={buttonVariants({ variant: "outline" })}>
+        {/* cn() lets the outline border win over the base transparent one */}
+        <Link href="/" className={cn(buttonVariants({ variant: "outline" }))}>
           Показать всех
         </Link>
       </EmptyState>
