@@ -6,14 +6,19 @@ import { Pool } from "pg";
 import { getDatabaseConfig } from "./config";
 import * as schema from "./schema";
 
-// Reuse one pool across hot reloads in development, otherwise every reload
-// would open new connections until Postgres runs out of them.
-const globalForDb = globalThis as unknown as { pgPool?: Pool };
-
-const pool = globalForDb.pgPool ?? new Pool(getDatabaseConfig());
-
-if (process.env.NODE_ENV !== "production") {
-  globalForDb.pgPool = pool;
+function createDb() {
+  return drizzle({ client: new Pool(getDatabaseConfig()), schema });
 }
 
-export const db = drizzle({ client: pool, schema });
+// Reuse one pool across hot reloads in development, otherwise every reload
+// would open new connections until Postgres runs out of them.
+const globalForDb = globalThis as unknown as {
+  db?: ReturnType<typeof createDb>;
+};
+
+// Created on the first query rather than on import: `next build` in CI loads
+// this module without database settings
+export function getDb() {
+  globalForDb.db ??= createDb();
+  return globalForDb.db;
+}

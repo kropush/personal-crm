@@ -10,7 +10,7 @@ import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
-import { getDatabaseConfig } from "./config";
+import { getDatabaseConfig, loadEnvFileIfPresent } from "./config";
 import { contacts, notes, type NewContact, type NewNote } from "./schema";
 
 const CONTACT_COUNT = 1000;
@@ -608,8 +608,7 @@ function inBatches<T>(items: T[], size: number): T[][] {
 }
 
 async function main() {
-  // The script runs outside of Next.js, so .env has to be loaded explicitly
-  process.loadEnvFile(".env");
+  loadEnvFileIfPresent();
 
   const shouldReset = process.argv.includes("--reset");
   const pool = new Pool(getDatabaseConfig());

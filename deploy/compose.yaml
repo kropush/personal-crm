@@ -1,0 +1,66 @@
+# Production on the server: the database, one-off migrations and the app.
+# Started only by deploy.sh, which passes the server's .env and APP_TAG
+# (the image tag, that is the commit SHA the image was built from).
+
+name: prod
+
+x-logging: &logging
+  # Container logs stay small: at most 3 files of 10 MB per container
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
+x-app-environment: &app-environment
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: "5432"
+  POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is not set in .env}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set in .env}
+  POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is not set in .env}
+
+services:
+  postgres:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is not set in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is not set in .env}
+    # No published ports: only the containers of this project reach the database
+    volumes:
+      # postgres:18+ keeps its data under /var/lib/postgresql (not /var/lib/postgresql/data)
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      # -h localhost: checks TCP, so the check stays red until first-run initialization is over
+      test: ["CMD-SHELL", "pg_isready -h localhost -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    logging: *logging
+
+  # One-off container from the app image: applies migrations and exits.
+  # `up` does not start it (profile), deploy.sh runs it before the new app.
+  migrate:
+    image: ghcr.io/kropush/personal-crm:${APP_TAG:?APP_TAG is not set}
+    command: ["node", "migrate.cjs"]
+    profiles: [tools]
+    environment: *app-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+    logging: *logging
+
+  app:
+    image: ghcr.io/kropush/personal-crm:${APP_TAG:?APP_TAG is not set}
+    restart: unless-stopped
+    environment: *app-environment
+    ports:
+      # Localhost only: the app is reachable from outside through nginx
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    logging: *logging
+
+volumes:
+  postgres-data:

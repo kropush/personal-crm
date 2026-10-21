@@ -3,7 +3,7 @@ import "server-only";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { cache } from "react";
 
-import { db } from "@/db";
+import { getDb } from "@/db";
 import { contacts, notes, type NewContact } from "@/db/schema";
 
 const MAX_SEARCH_LENGTH = 100;
@@ -46,7 +46,7 @@ export async function findContactsByName(search: string) {
       ? [sql`case when ${and(...words.map(startsSomeWord))} then 0 else 1 end`]
       : [];
 
-  return db
+  return getDb()
     .select({
       id: contacts.id,
       name: contacts.name,
@@ -64,12 +64,12 @@ export type ContactListItem = Awaited<
 >[number];
 
 export async function countContacts() {
-  return db.$count(contacts);
+  return getDb().$count(contacts);
 }
 
 // Wrapped in cache() so the page and its metadata share one query per request
 export const getContact = cache(async (id: number) => {
-  const [contact] = await db
+  const [contact] = await getDb()
     .select()
     .from(contacts)
     .where(eq(contacts.id, id))
@@ -78,7 +78,7 @@ export const getContact = cache(async (id: number) => {
 });
 
 export async function getNotes(contactId: number) {
-  return db
+  return getDb()
     .select()
     .from(notes)
     .where(eq(notes.contactId, contactId))
@@ -91,7 +91,7 @@ type ContactDetails = Pick<
 >;
 
 export async function createContact(values: ContactDetails) {
-  const [created] = await db
+  const [created] = await getDb()
     .insert(contacts)
     .values(values)
     .returning({ id: contacts.id });
@@ -100,7 +100,7 @@ export async function createContact(values: ContactDetails) {
 
 // Returns false when there is no contact with this id
 export async function updateContact(id: number, values: ContactDetails) {
-  const updated = await db
+  const updated = await getDb()
     .update(contacts)
     .set(values)
     .where(eq(contacts.id, id))
@@ -109,5 +109,5 @@ export async function updateContact(id: number, values: ContactDetails) {
 }
 
 export async function addNote(contactId: number, body: string) {
-  await db.insert(notes).values({ contactId, body });
+  await getDb().insert(notes).values({ contactId, body });
 }
