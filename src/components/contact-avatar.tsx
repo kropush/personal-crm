@@ -12,7 +12,7 @@ export function ContactAvatar({
     <span
       aria-hidden
       className={cn(
-        "flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-medium text-muted-foreground select-none",
+        "flex size-10 shrink-0 items-center justify-center rounded-full bg-linear-135/srgb from-violet to-coral text-sm font-semibold text-white select-none",
         className,
       )}
     >

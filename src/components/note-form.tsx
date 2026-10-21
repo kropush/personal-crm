@@ -45,7 +45,7 @@ export function NoteForm({ contactId }: { contactId: number }) {
       />
 
       <div className="flex items-center gap-3">
-        <Button type="submit" size="lg" className="px-3.5" disabled={isPending}>
+        <Button type="submit" size="lg" disabled={isPending}>
           {isPending && <LoaderCircle className="animate-spin" />}
           Сохранить заметку
         </Button>
@@ -56,8 +56,8 @@ export function NoteForm({ contactId }: { contactId: number }) {
               {state.error}
             </span>
           ) : isJustSaved ? (
-            <span className="inline-flex items-center gap-1 text-emerald-700">
-              <Check className="size-4" />
+            <span className="inline-flex items-center gap-1 text-ink-2">
+              <Check className="size-4 text-online" />
               Заметка сохранена
             </span>
           ) : (

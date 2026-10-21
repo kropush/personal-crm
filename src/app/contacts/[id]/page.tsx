@@ -53,7 +53,7 @@ async function ContactCard({ params }: { params: Params }) {
       <header className="flex items-center gap-4">
         <ContactAvatar name={contact.name} className="size-14 text-lg" />
         <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-semibold tracking-tight break-words">
+          <h1 className="text-title font-medium break-words">
             {contact.name}
           </h1>
           {contact.about && (
@@ -66,7 +66,7 @@ async function ContactCard({ params }: { params: Params }) {
           // cn() lets the outline border win over the base transparent one
           className={cn(
             buttonVariants({ variant: "outline", size: "lg" }),
-            "px-2.5 sm:px-3.5",
+            "max-sm:size-10 max-sm:px-0",
           )}
         >
           <Pencil />
@@ -76,7 +76,7 @@ async function ContactCard({ params }: { params: Params }) {
       </header>
 
       {(contact.howWeMet || contact.phone || contact.email) && (
-        <dl className="grid gap-x-6 gap-y-3 rounded-xl border p-4 text-sm sm:grid-cols-[10rem_1fr] sm:p-5">
+        <dl className="grid gap-x-6 gap-y-3 rounded-card bg-card p-4 text-sm shadow-contact sm:grid-cols-[10rem_1fr] sm:p-5">
           {contact.howWeMet && (
             <Detail label="Откуда знакомы">
               <span className="whitespace-pre-wrap">{contact.howWeMet}</span>
@@ -107,24 +107,24 @@ async function ContactCard({ params }: { params: Params }) {
       )}
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-lg font-semibold tracking-tight">Заметки</h2>
+        <h2 className="text-subtitle font-semibold">Заметки</h2>
         <NoteForm contactId={contact.id} />
 
         {notes.length === 0 ? (
-          <p className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
+          <p className="rounded-card border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
             Заметок пока нет. Запишите первую после разговора.
           </p>
         ) : (
           <ol className="flex flex-col gap-3">
             {notes.map((note) => (
-              <li key={note.id} className="rounded-xl border p-4">
+              <li key={note.id} className="rounded-card bg-card p-4 shadow-card sm:p-5">
                 <time
                   dateTime={note.createdAt.toISOString()}
-                  className="text-xs text-muted-foreground"
+                  className="font-mono text-label tracking-label text-muted-foreground uppercase"
                 >
                   {formatDateTime(note.createdAt)}
                 </time>
-                <p className="mt-1.5 text-sm leading-relaxed break-words whitespace-pre-wrap">
+                <p className="mt-2 leading-relaxed break-words whitespace-pre-wrap">
                   {note.body}
                 </p>
               </li>
@@ -157,14 +157,14 @@ function ContactCardSkeleton() {
       <div className="flex items-center gap-4">
         <Skeleton className="size-14 rounded-full" />
         <div className="flex flex-1 flex-col gap-2">
-          <Skeleton className="h-7 w-56" />
+          <Skeleton className="h-8 w-56" />
           <Skeleton className="h-4 w-40" />
         </div>
-        <Skeleton className="h-9 w-9 rounded-lg sm:w-28" />
+        <Skeleton className="size-10 rounded-full sm:w-32" />
       </div>
-      <Skeleton className="h-28 w-full rounded-xl" />
+      <Skeleton className="h-28 w-full rounded-card" />
       <Skeleton className="h-7 w-28" />
-      <Skeleton className="h-24 w-full rounded-xl" />
+      <Skeleton className="h-24 w-full rounded-card" />
     </div>
   );
 }

@@ -34,7 +34,7 @@ export async function ContactList({
         title="Здесь пока никого нет"
         description="Добавьте первого человека — он появится в этом списке."
       >
-        <Link href="/contacts/new" className={buttonVariants()}>
+        <Link href="/contacts/new" className={buttonVariants({ size: "lg" })}>
           Добавить контакт
         </Link>
       </EmptyState>
@@ -48,7 +48,10 @@ export async function ContactList({
         description={`По запросу «${query}» нет контактов. Проверьте, нет ли опечатки в имени.`}
       >
         {/* cn() lets the outline border win over the base transparent one */}
-        <Link href="/" className={cn(buttonVariants({ variant: "outline" }))}>
+        <Link
+          href="/"
+          className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
+        >
           Показать всех
         </Link>
       </EmptyState>
@@ -59,7 +62,10 @@ export async function ContactList({
 
   return (
     <section className="flex flex-col gap-3">
-      <p className="text-sm text-muted-foreground" aria-live="polite">
+      <p
+        className="font-mono text-label tracking-label text-muted-foreground uppercase"
+        aria-live="polite"
+      >
         {query
           ? `Найдено: ${formatNumber(contacts.length)} из ${formatNumber(total)}`
           : `${formatNumber(total)} ${pluralize(total, contactForms)}`}
@@ -79,9 +85,9 @@ function EmptyState({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed px-6 py-14 text-center">
-      <div className="flex flex-col gap-1">
-        <h2 className="font-medium">{title}</h2>
+    <div className="flex flex-col items-center gap-4 rounded-card border border-dashed px-6 py-14 text-center">
+      <div className="flex flex-col gap-1.5">
+        <h2 className="text-subtitle font-semibold text-balance">{title}</h2>
         <p className="text-sm text-balance text-muted-foreground">
           {description}
         </p>
@@ -94,10 +100,10 @@ function EmptyState({
 export function ContactListSkeleton() {
   return (
     <div className="flex flex-col gap-3" aria-hidden>
-      <Skeleton className="h-5 w-32" />
-      <div className="divide-y overflow-hidden rounded-xl border">
+      <Skeleton className="h-4 w-32" />
+      <div className="divide-y divide-line-2 overflow-hidden rounded-card bg-card shadow-contact">
         {Array.from({ length: 8 }, (_, index) => (
-          <div key={index} className="flex items-center gap-3 px-3 py-2.5 sm:px-4">
+          <div key={index} className="flex items-center gap-3 px-4 py-3 sm:px-5">
             <Skeleton className="size-10 rounded-full" />
             <div className="flex flex-1 flex-col gap-2">
               <Skeleton className="h-4 w-44" />

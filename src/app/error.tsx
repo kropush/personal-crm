@@ -17,8 +17,8 @@ export default function ErrorPage({
 
   return (
     <main className="flex flex-col items-center gap-4 py-20 text-center">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-title font-medium text-balance">
           Не получилось загрузить данные
         </h1>
         <p className="max-w-md text-balance text-muted-foreground">
@@ -29,7 +29,7 @@ export default function ErrorPage({
           и попробуйте ещё раз.
         </p>
       </div>
-      <Button size="lg" className="px-3.5" onClick={() => retry()}>
+      <Button size="lg" onClick={() => retry()}>
         Попробовать ещё раз
       </Button>
     </main>

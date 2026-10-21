@@ -28,7 +28,7 @@ export function ContactRows({
   }, [addedId]);
 
   return (
-    <ul className="divide-y overflow-hidden rounded-xl border">
+    <ul className="divide-y divide-line-2 overflow-hidden rounded-card bg-card shadow-contact">
       {contacts.map((contact) => {
         const isJustAdded = contact.id === addedId;
         return (
@@ -36,8 +36,8 @@ export function ContactRows({
             <Link
               href={`/contacts/${contact.id}`}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 outline-none hover:bg-muted/60 focus-visible:bg-muted sm:px-4",
-                isJustAdded && "bg-emerald-50 hover:bg-emerald-100/70",
+                "flex items-center gap-3 px-4 py-3 outline-none hover:bg-muted focus-visible:bg-muted sm:px-5",
+                isJustAdded && "bg-violet/6 hover:bg-violet/10",
               )}
             >
               <ContactAvatar name={contact.name} />
@@ -45,7 +45,7 @@ export function ContactRows({
                 <div className="flex items-center gap-2">
                   <span className="truncate font-medium">{contact.name}</span>
                   {isJustAdded && (
-                    <span className="shrink-0 rounded-full bg-emerald-600 px-2 py-0.5 text-xs font-medium text-white">
+                    <span className="shrink-0 rounded-full bg-linear-to-r/srgb from-indigo to-violet px-2 py-0.5 text-xs font-medium text-white">
                       Новый
                     </span>
                   )}

@@ -1,6 +1,6 @@
-import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
+// Small caps link in the style of the landing page labels
 export function BackLink({
   href,
   children,
@@ -11,9 +11,9 @@ export function BackLink({
   return (
     <Link
       href={href}
-      className="inline-flex w-fit items-center gap-1.5 rounded-md text-sm text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+      className="inline-flex w-fit items-center gap-2 rounded-sm font-mono text-label tracking-label text-muted-foreground uppercase outline-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-violet"
     >
-      <ArrowLeft className="size-4" />
+      <span aria-hidden>←</span>
       {children}
     </Link>
   );

@@ -65,8 +65,8 @@ export function ContactSearch() {
   }
 
   return (
-    <InputGroup className="h-10 bg-background">
-      <InputGroupAddon>
+    <InputGroup className="h-10 rounded-full bg-card shadow-contact">
+      <InputGroupAddon className="pl-3.5">
         {isPending ? <LoaderCircle className="animate-spin" /> : <Search />}
       </InputGroupAddon>
       <InputGroupInput
@@ -87,9 +87,10 @@ export function ContactSearch() {
         }}
       />
       {value && (
-        <InputGroupAddon align="inline-end">
+        <InputGroupAddon align="inline-end" className="pr-2.5">
           <InputGroupButton
             size="icon-xs"
+            className="rounded-full"
             aria-label="Очистить поиск"
             onClick={clear}
           >
@@ -105,8 +106,8 @@ export function ContactSearch() {
 // Looks exactly like the real field, so nothing jumps when it is replaced.
 export function ContactSearchFallback() {
   return (
-    <InputGroup className="h-10 bg-background">
-      <InputGroupAddon>
+    <InputGroup className="h-10 rounded-full bg-card shadow-contact">
+      <InputGroupAddon className="pl-3.5">
         <Search />
       </InputGroupAddon>
       <InputGroupInput

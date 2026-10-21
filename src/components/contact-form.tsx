@@ -154,17 +154,13 @@ function ContactFormFields({ contact }: ContactFormProps) {
         {formError && <FieldError>{formError}</FieldError>}
 
         <div className="flex items-center gap-2">
-          <Button type="submit" size="lg" className="px-3.5" disabled={isPending}>
+          <Button type="submit" size="lg" disabled={isPending}>
             {isPending && <LoaderCircle className="animate-spin" />}
             {contact ? "Сохранить изменения" : "Сохранить контакт"}
           </Button>
           <Link
             href={contact ? `/contacts/${contact.id}` : "/"}
-            className={buttonVariants({
-              variant: "ghost",
-              size: "lg",
-              className: "px-3.5",
-            })}
+            className={buttonVariants({ variant: "ghost", size: "lg" })}
           >
             Отмена
           </Link>

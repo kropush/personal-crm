@@ -46,7 +46,7 @@ async function EditContact({ params }: { params: Params }) {
   return (
     <>
       <BackLink href={`/contacts/${contact.id}`}>Назад к контакту</BackLink>
-      <h1 className="text-2xl font-semibold tracking-tight">
+      <h1 className="text-title font-medium">
         Изменить контакт
       </h1>
       <ContactForm
