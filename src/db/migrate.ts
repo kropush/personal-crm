@@ -17,7 +17,7 @@ async function main() {
   const pool = new Pool(getDatabaseConfig());
   try {
     await migrate(drizzle({ client: pool }), { migrationsFolder: "./drizzle" });
-    console.log("Migrations are up to date.");
+    console.log("Migrations applied: every migration from ./drizzle is in the database.");
   } finally {
     await pool.end();
   }

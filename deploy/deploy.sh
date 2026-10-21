@@ -34,13 +34,14 @@ smoke_check() {
   local url="$1"
   shift
   for _ in $(seq 1 30); do
-    if curl -fsS --max-time 5 "$@" "$url"; then
+    # Quiet while the app is starting; the last attempt below shows the error
+    if curl -fs --max-time 5 "$@" "$url"; then
       echo
       return 0
     fi
     sleep 2
   done
-  return 1
+  curl -fsS --max-time 5 "$@" "$url"
 }
 
 log "Deploying $image:$tag"
