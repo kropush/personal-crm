@@ -16,12 +16,29 @@ const jetBrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
 });
 
+// Same as on the landing page
+const description =
+  "Все контакты и заметки в одном месте: открыл, нашел человека, вспомнил, о чем договорились.";
+
 export const metadata: Metadata = {
+  // Link previews need absolute URLs, e.g. for opengraph-image
+  metadataBase: new URL("https://app.kropcrm.ru"),
   title: {
     default: "Личная CRM",
     template: "%s · Личная CRM",
   },
-  description: "Контакты людей, которых я знаю лично, и заметки о общении с ними",
+  description,
+  // Link preview. Pages set only their own title, so a contact's name never gets into it
+  openGraph: {
+    type: "website",
+    locale: "ru_RU",
+    siteName: "Личная CRM",
+    title: "Личная CRM",
+    description,
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export const viewport: Viewport = {
