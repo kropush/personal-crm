@@ -108,6 +108,11 @@ export async function updateContact(id: number, values: ContactDetails) {
   return updated.length > 0;
 }
 
+// Its notes are deleted too: the foreign key cascades
+export async function deleteContact(id: number) {
+  await getDb().delete(contacts).where(eq(contacts.id, id));
+}
+
 export async function addNote(contactId: number, body: string) {
   await getDb().insert(notes).values({ contactId, body });
 }

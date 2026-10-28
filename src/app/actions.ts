@@ -7,6 +7,7 @@ import { z } from "zod";
 import {
   addNote,
   createContact,
+  deleteContact,
   getContact,
   updateContact,
 } from "@/lib/contacts";
@@ -16,11 +17,14 @@ import {
   noteSchema,
   type ContactFormState,
   type ContactFormValues,
+  type DeleteContactState,
   type NoteFormState,
 } from "@/lib/validation";
 
 const SAVE_FAILED_MESSAGE =
   "Не удалось сохранить. Проверьте, что база данных запущена, и попробуйте ещё раз.";
+const DELETE_FAILED_MESSAGE =
+  "Не удалось удалить. Проверьте, что база данных запущена, и попробуйте ещё раз.";
 const CONTACT_NOT_FOUND_MESSAGE = "Контакт не найден";
 
 function readText(formData: FormData, name: string) {
@@ -108,6 +112,29 @@ export async function updateContactAction(
   revalidatePath("/");
   revalidatePath(`/contacts/${parsedId.data}`);
   redirect(`/contacts/${parsedId.data}`);
+}
+
+export async function deleteContactAction(
+  contactId: number,
+): Promise<DeleteContactState> {
+  const parsedId = contactIdSchema.safeParse(contactId);
+  if (!parsedId.success) {
+    return { error: CONTACT_NOT_FOUND_MESSAGE };
+  }
+
+  // A contact already deleted in another browser is not an error:
+  // either way it is gone, and the list is the place to go
+  try {
+    await deleteContact(parsedId.data);
+  } catch (error) {
+    console.error("Failed to delete contact", error);
+    return { error: DELETE_FAILED_MESSAGE };
+  }
+
+  revalidatePath("/");
+  // So that the browser's Back button does not bring back the deleted card
+  revalidatePath(`/contacts/${parsedId.data}`);
+  redirect("/");
 }
 
 export async function addNoteAction(
