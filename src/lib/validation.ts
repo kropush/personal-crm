@@ -81,3 +81,7 @@ export type NoteFormState = {
   // Grows by one on every saved note, so the form can confirm each save
   savedCount: number;
 };
+
+export type DeleteContactState = {
+  error?: string;
+};

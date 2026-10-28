@@ -6,6 +6,7 @@ import { Suspense } from "react";
 
 import { BackLink } from "@/components/back-link";
 import { ContactAvatar } from "@/components/contact-avatar";
+import { DeleteContactButton } from "@/components/delete-contact-button";
 import { NoteForm } from "@/components/note-form";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -60,19 +61,25 @@ async function ContactCard({ params }: { params: Params }) {
             <p className="break-words text-muted-foreground">{contact.about}</p>
           )}
         </div>
-        <Link
-          href={`/contacts/${contact.id}/edit`}
-          aria-label="Изменить контакт"
-          // cn() lets the outline border win over the base transparent one
-          className={cn(
-            buttonVariants({ variant: "outline", size: "lg" }),
-            "max-sm:size-10 max-sm:px-0",
-          )}
-        >
-          <Pencil />
-          {/* Icon only on phones, so the name keeps the room it needs */}
-          <span className="hidden sm:inline">Изменить</span>
-        </Link>
+        <div className="flex shrink-0 items-center gap-2">
+          <Link
+            href={`/contacts/${contact.id}/edit`}
+            aria-label="Изменить контакт"
+            // cn() lets the outline border win over the base transparent one
+            className={cn(
+              buttonVariants({ variant: "outline", size: "lg" }),
+              "max-sm:size-10 max-sm:px-0",
+            )}
+          >
+            <Pencil />
+            {/* Icon only on phones, so the name keeps the room it needs */}
+            <span className="hidden sm:inline">Изменить</span>
+          </Link>
+          <DeleteContactButton
+            contactId={contact.id}
+            contactName={contact.name}
+          />
+        </div>
       </header>
 
       {(contact.howWeMet || contact.phone || contact.email) && (
@@ -160,7 +167,10 @@ function ContactCardSkeleton() {
           <Skeleton className="h-8 w-56" />
           <Skeleton className="h-4 w-40" />
         </div>
-        <Skeleton className="size-10 rounded-full sm:w-32" />
+        <div className="flex gap-2">
+          <Skeleton className="size-10 rounded-full sm:w-32" />
+          <Skeleton className="size-10 rounded-full" />
+        </div>
       </div>
       <Skeleton className="h-28 w-full rounded-card" />
       <Skeleton className="h-7 w-28" />
