@@ -7,10 +7,11 @@ import { Suspense } from "react";
 import { BackLink } from "@/components/back-link";
 import { ContactAvatar } from "@/components/contact-avatar";
 import { DeleteContactButton } from "@/components/delete-contact-button";
+import { KeepInTouchControl } from "@/components/keep-in-touch-control";
 import { NoteForm } from "@/components/note-form";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getContact, getNotes } from "@/lib/contacts";
+import { getContact, getKeepInTouchStatus, getNotes } from "@/lib/contacts";
 import { formatDateTime, getPhoneHref } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { parseContactId } from "@/lib/validation";
@@ -46,7 +47,14 @@ async function ContactCard({ params }: { params: Params }) {
   if (!contact) {
     notFound();
   }
-  const notes = await getNotes(contact.id);
+  const [notes, keepInTouchStatus] = await Promise.all([
+    getNotes(contact.id),
+    getKeepInTouchStatus(contact.id),
+  ]);
+  if (!keepInTouchStatus) {
+    // Deleted in another browser a moment ago
+    notFound();
+  }
   const phoneHref = contact.phone ? getPhoneHref(contact.phone) : null;
 
   return (
@@ -113,6 +121,8 @@ async function ContactCard({ params }: { params: Params }) {
         </dl>
       )}
 
+      <KeepInTouchControl contactId={contact.id} status={keepInTouchStatus} />
+
       <section className="flex flex-col gap-4">
         <h2 className="text-subtitle font-semibold">Заметки</h2>
         <NoteForm contactId={contact.id} />
@@ -173,6 +183,7 @@ function ContactCardSkeleton() {
         </div>
       </div>
       <Skeleton className="h-28 w-full rounded-card" />
+      <Skeleton className="h-32 w-full rounded-card" />
       <Skeleton className="h-7 w-28" />
       <Skeleton className="h-24 w-full rounded-card" />
     </div>

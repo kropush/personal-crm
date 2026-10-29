@@ -1,0 +1,21 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-10-29T12:00:00Z" },
+  "title": "Пора связаться — макеты",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 1280, "h": 1520, "title": "Главная — компьютер", "expand": "fill", "is_interactive": true },
+    "CardDesktop.dc.html": { "x": 1360, "y": 0, "w": 1280, "h": 1460, "title": "Карточка — компьютер", "expand": "fill", "is_interactive": true },
+    "MainPhone.dc.html": { "x": 0, "y": 1940, "w": 390, "h": 1460, "title": "Главная — телефон", "is_interactive": true },
+    "CardPhone.dc.html": { "x": 470, "y": 1940, "w": 390, "h": 1660, "title": "Карточка — телефон", "is_interactive": true },
+    "States.dc.html": { "x": 0, "y": 4020, "w": 1200, "h": 1900, "title": "Состояния переключателя и блока" }
+  },
+  "order": ["Main.dc.html", "CardDesktop.dc.html", "MainPhone.dc.html", "CardPhone.dc.html", "States.dc.html"],
+  "notes": {
+    "desktop": { "x": 0, "y": -300, "text": "Компьютер", "kind": "title1", "maxW": 2640 },
+    "phone": { "x": 0, "y": 1640, "text": "Телефон", "kind": "title1", "maxW": 860 },
+    "states": { "x": 0, "y": 3720, "text": "Состояния", "kind": "title1", "maxW": 1200 }
+  },
+  "designSystems": []
+}

@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Состояния переключателя и блока</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f1efeb;-webkit-font-smoothing:antialiased}
+a{color:#0d0c14}a:hover{color:#0d0c14}
+</style>
+</helmet>
+<div style="width: 1200px; height: 1900px; padding: 64px; background: #f1efeb; color: #0d0c14; font-family: 'Inter Tight', ui-sans-serif, system-ui, sans-serif; font-size: 16px; line-height: 1.5">
+  <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 40px">
+    <h1 style="margin: 0; font-size: 30px; line-height: 1.05; letter-spacing: -0.04em; font-weight: 500">Как часто общаться — состояния</h1>
+    <p style="margin: 0; color: #6b6874">Сегодня в примерах — 28 октября 2026</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 24px; align-items: start">
+    <sc-for list="{{ states }}" as="st" hint-placeholder-count="9">
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <p style="margin: 0; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 16px; letter-spacing: 0.14em; text-transform: uppercase; color: #6b6874">{{ st.caption }}</p>
+        <section style="display: flex; flex-direction: column; gap: 12px; padding: 20px; border-radius: 16px; background: #ffffff; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 10px 24px -18px rgba(30, 20, 80, 0.5)">
+          <h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Как часто общаться</h2>
+          <div role="group" aria-label="Как часто общаться" style="display: flex; flex-wrap: wrap; gap: 8px">
+            <sc-for list="{{ st.buttons }}" as="b" hint-placeholder-count="5">
+              <button type="button" aria-pressed="{{ b.pressed }}" disabled="{{ b.disabled }}" style="height: 40px; padding: 0 16px; border: 1px solid {{ b.border }}; border-radius: 9999px; background: {{ b.bg }}; color: {{ b.fg }}; font-family: inherit; font-size: 14px; font-weight: 500; opacity: {{ b.opacity }}">{{ b.label }}</button>
+            </sc-for>
+          </div>
+          <sc-if value="{{ st.hasLine }}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px">
+              <p style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 14px; line-height: 20px; color: #6b6874; opacity: {{ st.lineOpacity }}">
+                <sc-if value="{{ st.isFuture }}" hint-placeholder-val="{{ true }}">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path></svg>
+                </sc-if>
+                <sc-if value="{{ st.isDue }}" hint-placeholder-val="{{ false }}">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{ st.iconColor }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2 2"></path><path d="M5 3 2 6"></path><path d="m22 6-3-3"></path></svg>
+                </sc-if>
+                <span><span style="color: {{ st.leadColor }}; font-weight: 500">{{ st.lead }}</span> — <span style="color: {{ st.restColor }}; font-weight: {{ st.restWeight }}">{{ st.rest }}</span></span>
+              </p>
+              <sc-if value="{{ st.showMark }}" hint-placeholder-val="{{ true }}">
+                <button type="button" disabled="{{ st.markDisabled }}" style="display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; flex-shrink: 0; border: 1px solid #e2dfd9; border-radius: 9999px; background: #ffffff; color: #0d0c14; font-family: inherit; font-size: 14px; font-weight: 500; opacity: {{ st.lineOpacity }}">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+                  Связался
+                </button>
+              </sc-if>
+              <sc-if value="{{ st.isMarked }}" hint-placeholder-val="{{ false }}">
+                <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 14px; line-height: 20px; color: #4a4752">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2fbf71" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+                  Отмечено
+                  <button type="button" style="height: 36px; padding: 0 10px; border: 0; border-radius: 9999px; background: transparent; color: #4b47f2; font-family: inherit; font-size: 14px; font-weight: 500">Отменить</button>
+                </span>
+              </sc-if>
+            </div>
+          </sc-if>
+          <sc-if value="{{ st.hasError }}" hint-placeholder-val="{{ false }}">
+            <p role="alert" style="margin: 0; font-size: 14px; line-height: 20px; color: #c42f24">Не удалось сохранить. Проверьте, что база данных запущена, и попробуйте ещё раз.</p>
+          </sc-if>
+        </section>
+      </div>
+    </sc-for>
+  </div>
+
+  <h2 style="margin: 56px 0 24px; font-size: 22px; line-height: 1.2; letter-spacing: -0.025em; font-weight: 600">Строка блока «Пора связаться»</h2>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 24px; align-items: start">
+    <sc-for list="{{ rows }}" as="row" hint-placeholder-count="3">
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <p style="margin: 0; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 16px; letter-spacing: 0.14em; text-transform: uppercase; color: #6b6874">{{ row.caption }}</p>
+        <div style="overflow: hidden; border-radius: 16px; background: #ffffff; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 10px 24px -18px rgba(30, 20, 80, 0.5)">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 20px; background: {{ row.rowBg }}">
+            <a href="#" style="display: flex; flex: 1; min-width: 0; align-items: center; gap: 12px; color: #0d0c14; text-decoration: none">
+              <span aria-hidden="true" style="display: flex; width: 40px; height: 40px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 9999px; background: linear-gradient(135deg, #8a4cf0, #f0564a); color: #ffffff; font-size: 14px; font-weight: 600">АС</span>
+              <span style="display: flex; flex-direction: column; flex: 1; min-width: 0">
+                <span style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: 500">Анна Смирнова</span>
+                <sc-if value="{{ row.isNormal }}" hint-placeholder-val="{{ true }}">
+                  <span style="font-size: 14px; line-height: 20px; color: #6b6874">Раз в месяц · <span style="color: #c42f24">просрочено на 40 дней</span></span>
+                </sc-if>
+                <sc-if value="{{ row.isMarked }}" hint-placeholder-val="{{ false }}">
+                  <span style="display: flex; align-items: center; gap: 4px; font-size: 14px; line-height: 20px; color: #4a4752">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2fbf71" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+                    Отмечено
+                  </span>
+                </sc-if>
+                <sc-if value="{{ row.isError }}" hint-placeholder-val="{{ false }}">
+                  <span role="alert" style="font-size: 14px; line-height: 20px; color: #c42f24">Не удалось сохранить. Проверьте, что база данных запущена, и попробуйте ещё раз.</span>
+                </sc-if>
+              </span>
+            </a>
+            <sc-if value="{{ row.showMark }}" hint-placeholder-val="{{ true }}">
+              <button type="button" aria-label="Связался: Анна Смирнова" style="display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; flex-shrink: 0; border: 1px solid #e2dfd9; border-radius: 9999px; background: #ffffff; color: #0d0c14; font-family: inherit; font-size: 14px; font-weight: 500">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+                Связался
+              </button>
+            </sc-if>
+            <sc-if value="{{ row.isMarked }}" hint-placeholder-val="{{ false }}">
+              <button type="button" style="height: 36px; padding: 0 14px; flex-shrink: 0; border: 0; border-radius: 9999px; background: transparent; color: #4b47f2; font-family: inherit; font-size: 14px; font-weight: 500">Отменить</button>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <p style="margin: 0; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 16px; letter-spacing: 0.14em; text-transform: uppercase; color: #6b6874">Блок на главной загружается</p>
+      <div aria-hidden="true" style="display: flex; flex-direction: column; gap: 12px">
+        <div style="width: 160px; height: 16px; border-radius: 6px; background: rgba(13, 12, 20, 0.07)"></div>
+        <div style="overflow: hidden; border-radius: 16px; background: #ffffff; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 10px 24px -18px rgba(30, 20, 80, 0.5)">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 20px">
+            <div style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 9999px; background: rgba(13, 12, 20, 0.07)"></div>
+            <div style="display: flex; flex: 1; flex-direction: column; gap: 8px">
+              <div style="width: 176px; height: 16px; border-radius: 6px; background: rgba(13, 12, 20, 0.07)"></div>
+              <div style="width: 232px; height: 14px; border-radius: 6px; background: rgba(13, 12, 20, 0.07)"></div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-top: 1px solid #eeece8">
+            <div style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 9999px; background: rgba(13, 12, 20, 0.07)"></div>
+            <div style="display: flex; flex: 1; flex-direction: column; gap: 8px">
+              <div style="width: 144px; height: 16px; border-radius: 6px; background: rgba(13, 12, 20, 0.07)"></div>
+              <div style="width: 208px; height: 14px; border-radius: 6px; background: rgba(13, 12, 20, 0.07)"></div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-top: 1px solid #eeece8">
+            <div style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 9999px; background: rgba(13, 12, 20, 0.07)"></div>
+            <div style="display: flex; flex: 1; flex-direction: column; gap: 8px">
+              <div style="width: 192px; height: 16px; border-radius: 6px; background: rgba(13, 12, 20, 0.07)"></div>
+              <div style="width: 248px; height: 14px; border-radius: 6px; background: rgba(13, 12, 20, 0.07)"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1200,"height":1900}}'>
+const LABELS = [
+  { id: 'none', label: 'Не задано' },
+  { id: 'week', label: 'Неделя' },
+  { id: 'month', label: 'Месяц' },
+  { id: 'quarter', label: 'Квартал' },
+  { id: 'year', label: 'Год' }
+];
+
+const STATES = [
+  { caption: 'Срок впереди', selected: 'month', line: { future: true, lead: 'Следующий раз', rest: '28 ноября' } },
+  { caption: 'Срок в следующем году', selected: 'year', line: { future: true, lead: 'Следующий раз', rest: '28 октября 2027' } },
+  { caption: 'Срок сегодня', selected: 'week', line: { future: false, overdue: false, lead: 'Пора связаться', rest: 'сегодня' } },
+  { caption: 'Срок прошёл', selected: 'week', line: { future: false, overdue: true, lead: 'Пора связаться', rest: 'просрочено на 1 день' } },
+  { caption: 'Частота не задана — ни строки, ни кнопки', selected: 'none', line: null },
+  { caption: 'Сохраняется: выбран «Квартал», был «Месяц»', selected: 'quarter', pending: true, line: { future: true, lead: 'Следующий раз', rest: '28 ноября' } },
+  { caption: 'Частоту сохранить не удалось — снова «Месяц»', selected: 'month', error: true, line: null },
+  { caption: 'Нажал «Связался» — 5 секунд на отмену', selected: 'month', marked: true, line: { future: true, lead: 'Следующий раз', rest: '28 ноября' } },
+  { caption: 'Отметку сохранить не удалось', selected: 'week', error: true, line: { future: false, overdue: true, lead: 'Пора связаться', rest: 'просрочено на 1 день' } }
+];
+
+const ROWS = [
+  { caption: 'Обычная строка', kind: 'normal' },
+  { caption: 'Нажал «Связался» — 5 секунд на отмену', kind: 'marked' },
+  { caption: 'Отметку сохранить не удалось', kind: 'error' }
+];
+
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      states: STATES.map(function (state) {
+        const line = state.line;
+        return {
+          caption: state.caption,
+          buttons: LABELS.map(function (item) {
+            const on = item.id === state.selected;
+            return {
+              label: item.label,
+              pressed: on ? 'true' : 'false',
+              disabled: !!state.pending,
+              border: on ? '#4b47f2' : '#e2dfd9',
+              bg: on ? 'rgba(75, 71, 242, 0.08)' : '#ffffff',
+              fg: on ? '#4b47f2' : '#4a4752',
+              opacity: state.pending ? 0.5 : 1
+            };
+          }),
+          hasLine: !!line,
+          lineOpacity: state.pending ? 0.5 : 1,
+          isFuture: !!line && line.future,
+          isDue: !!line && !line.future,
+          iconColor: line && line.overdue ? '#c42f24' : '#0d0c14',
+          lead: line ? line.lead : '',
+          leadColor: line && line.future ? '#6b6874' : '#0d0c14',
+          rest: line ? line.rest : '',
+          restColor: !line ? '#0d0c14' : line.future ? '#4a4752' : line.overdue ? '#c42f24' : '#0d0c14',
+          restWeight: line && line.future ? '400' : '500',
+          showMark: !state.marked,
+          markDisabled: !!state.pending,
+          isMarked: !!state.marked,
+          hasError: !!state.error
+        };
+      }),
+      rows: ROWS.map(function (row) {
+        return {
+          caption: row.caption,
+          isNormal: row.kind === 'normal',
+          isMarked: row.kind === 'marked',
+          isError: row.kind === 'error',
+          showMark: row.kind !== 'marked',
+          rowBg: row.kind === 'marked' ? 'rgba(138, 76, 240, 0.06)' : 'transparent'
+        };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

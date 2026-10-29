@@ -1,4 +1,6 @@
-// Fills the database with test data: 1000 contacts with notes.
+// Fills the database with test data: 1000 contacts with notes. About a third
+// of them have a keep-in-touch frequency, and a few "Тестов" contacts sit on
+// the edges of the countdown to check the dates by hand.
 //
 //   pnpm db:seed            fills an empty database
 //   pnpm db:seed --reset    deletes ALL contacts and notes first, then fills
@@ -11,6 +13,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
 import { getDatabaseConfig, loadEnvFileIfPresent } from "./config";
+import type { KeepInTouchFrequency } from "./keep-in-touch";
 import { contacts, notes, type NewContact, type NewNote } from "./schema";
 
 const CONTACT_COUNT = 1000;
@@ -550,13 +553,17 @@ function randomMoment(from: Date, to: Date) {
   return day > to ? to : day;
 }
 
-type SeedContact = { contact: NewContact; notes: Omit<NewNote, "contactId">[] };
+type SeedNote = Omit<NewNote, "contactId"> & { createdAt: Date };
+type SeedContact = {
+  contact: NewContact & { createdAt: Date };
+  notes: SeedNote[];
+};
 
-function createContacts(now: Date): SeedContact[] {
+function createContacts(now: Date, count: number): SeedContact[] {
   const usedNames = new Set<string>();
   const result: SeedContact[] = [];
 
-  while (result.length < CONTACT_COUNT) {
+  while (result.length < count) {
     const gender: Gender = chance(0.5) ? "m" : "f";
     const firstName = pick(FIRST_NAMES[gender]);
     const baseSurname = pick(SURNAMES);
@@ -597,6 +604,120 @@ function createContacts(now: Date): SeedContact[] {
   return result;
 }
 
+// --- Keep in touch ----------------------------------------------------------
+
+// Called after all contacts are generated, so the people and their notes stay
+// the same as before the keep-in-touch fields appeared
+function addKeepInTouch(seedContacts: SeedContact[], now: Date) {
+  for (const { contact, notes } of seedContacts) {
+    if (!chance(1 / 3)) continue;
+
+    contact.keepInTouchFrequency = pickWeighted<KeepInTouchFrequency>([
+      { weight: 15, value: "week" },
+      { weight: 35, value: "month" },
+      { weight: 30, value: "quarter" },
+      { weight: 20, value: "year" },
+    ]);
+    // As if the frequency was chosen when the contact was added
+    contact.keepInTouchSetAt = contact.createdAt;
+
+    if (chance(0.3)) {
+      const lastNoteAt = Math.max(
+        contact.createdAt.getTime(),
+        ...notes.map((note) => note.createdAt.getTime()),
+      );
+      contact.lastContactedAt = randomMoment(new Date(lastNoteAt), now);
+    }
+  }
+}
+
+// Contacts on the edges of the countdown. "Тестов" is not among SURNAMES,
+// so the names never clash, and searching "тест" finds all of them.
+const BOUNDARY_CONTACTS: readonly {
+  gender: Gender;
+  name: string;
+  about: string;
+  frequency: KeepInTouchFrequency;
+  createdDaysAgo: number;
+  noteDaysAgo: number[];
+  contactedDaysAgo?: number;
+}[] = [
+  {
+    gender: "f",
+    name: "Анна Тестова",
+    about: "Проверка сроков: раз в неделю, последняя заметка 6 дней назад",
+    frequency: "week",
+    createdDaysAgo: 90,
+    noteDaysAgo: [6, 40],
+  },
+  {
+    gender: "m",
+    name: "Борис Тестов",
+    about: "Проверка сроков: раз в неделю, последняя заметка 7 дней назад",
+    frequency: "week",
+    createdDaysAgo: 90,
+    noteDaysAgo: [7, 40],
+  },
+  {
+    gender: "f",
+    name: "Вера Тестова",
+    about: "Проверка сроков: раз в неделю, последняя заметка 8 дней назад",
+    frequency: "week",
+    createdDaysAgo: 90,
+    noteDaysAgo: [8, 40],
+  },
+  {
+    gender: "m",
+    name: "Глеб Тестов",
+    about: "Проверка сроков: раз в месяц, заметок нет, частоту выбрали 10 дней назад",
+    frequency: "month",
+    createdDaysAgo: 10,
+    noteDaysAgo: [],
+  },
+  {
+    gender: "f",
+    name: "Дарья Тестова",
+    about:
+      "Проверка сроков: раз в неделю, заметка 20 дней назад, «Связался» 7 дней назад",
+    frequency: "week",
+    createdDaysAgo: 90,
+    noteDaysAgo: [20],
+    contactedDaysAgo: 7,
+  },
+];
+
+// Exactly N days before now is exactly N days back in Moscow too:
+// Moscow has no daylight saving time
+function createBoundaryContacts(now: Date): SeedContact[] {
+  const daysAgo = (days: number) => new Date(now.getTime() - days * DAY_MS);
+
+  return BOUNDARY_CONTACTS.map((boundary) => {
+    const g: Wording = (masculine, feminine) =>
+      boundary.gender === "m" ? masculine : feminine;
+    const createdAt = daysAgo(boundary.createdDaysAgo);
+    const bodies = pickSeveral(generalNotes(g), boundary.noteDaysAgo.length);
+
+    return {
+      contact: {
+        name: boundary.name,
+        about: boundary.about,
+        phone: createPhone(),
+        createdAt,
+        keepInTouchFrequency: boundary.frequency,
+        keepInTouchSetAt: createdAt,
+        lastContactedAt:
+          boundary.contactedDaysAgo === undefined
+            ? null
+            : daysAgo(boundary.contactedDaysAgo),
+      },
+      notes: bodies.map((body, index) => ({
+        body,
+        createdAt: daysAgo(boundary.noteDaysAgo[index]),
+      })),
+    };
+  });
+}
+
 // --- Writing to the database ------------------------------------------------
 
 function inBatches<T>(items: T[], size: number): T[][] {
@@ -627,7 +748,13 @@ async function main() {
       return;
     }
 
-    const seedContacts = createContacts(new Date());
+    const now = new Date();
+    const seedContacts = createContacts(
+      now,
+      CONTACT_COUNT - BOUNDARY_CONTACTS.length,
+    );
+    addKeepInTouch(seedContacts, now);
+    seedContacts.push(...createBoundaryContacts(now));
     let noteCount = 0;
 
     await db.transaction(async (tx) => {

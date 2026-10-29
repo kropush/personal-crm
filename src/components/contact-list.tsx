@@ -10,7 +10,7 @@ import { parseContactId } from "@/lib/validation";
 
 type SearchParams = PageProps<"/">["searchParams"];
 
-function firstValue(value: string | string[] | undefined) {
+export function firstValue(value: string | string[] | undefined) {
   return (Array.isArray(value) ? value[0] : value) ?? "";
 }
 

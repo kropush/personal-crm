@@ -4,28 +4,39 @@ import { refresh, revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import type { KeepInTouchFrequency } from "@/db/keep-in-touch";
 import {
   addNote,
   createContact,
   deleteContact,
   getContact,
+  markContacted,
+  setKeepInTouchFrequency,
+  undoMarkContacted,
   updateContact,
 } from "@/lib/contacts";
 import {
   contactIdSchema,
   contactSchema,
+  keepInTouchFrequencySchema,
   noteSchema,
+  SAVE_FAILED_MESSAGE,
+  undoMarkContactedSchema,
   type ContactFormState,
   type ContactFormValues,
   type DeleteContactState,
+  type MarkContactedResult,
   type NoteFormState,
+  type SetKeepInTouchFrequencyResult,
+  type UndoMarkContactedResult,
 } from "@/lib/validation";
 
-const SAVE_FAILED_MESSAGE =
-  "Не удалось сохранить. Проверьте, что база данных запущена, и попробуйте ещё раз.";
 const DELETE_FAILED_MESSAGE =
   "Не удалось удалить. Проверьте, что база данных запущена, и попробуйте ещё раз.";
 const CONTACT_NOT_FOUND_MESSAGE = "Контакт не найден";
+const UNKNOWN_FREQUENCY_MESSAGE = "Не удалось сохранить: такой частоты нет";
+const UNDO_NOT_POSSIBLE_MESSAGE =
+  "Отменить не получилось: отметку уже изменили в другом окне";
 
 function readText(formData: FormData, name: string) {
   const value = formData.get(name);
@@ -166,6 +177,103 @@ export async function addNoteAction(
     return { body, savedCount, error: SAVE_FAILED_MESSAGE };
   }
 
+  // A note restarts the countdown: the contact may leave the home page block
+  revalidatePath("/");
   refresh();
   return { body: "", savedCount: savedCount + 1 };
+}
+
+export async function setKeepInTouchFrequencyAction(
+  contactId: number,
+  frequency: KeepInTouchFrequency | null,
+): Promise<SetKeepInTouchFrequencyResult> {
+  const parsedId = contactIdSchema.safeParse(contactId);
+  if (!parsedId.success) {
+    return { error: CONTACT_NOT_FOUND_MESSAGE };
+  }
+  const parsedFrequency = keepInTouchFrequencySchema.safeParse(frequency);
+  if (!parsedFrequency.success) {
+    return { error: UNKNOWN_FREQUENCY_MESSAGE };
+  }
+
+  let isUpdated: boolean;
+  try {
+    isUpdated = await setKeepInTouchFrequency(
+      parsedId.data,
+      parsedFrequency.data,
+    );
+  } catch (error) {
+    console.error("Failed to set keep-in-touch frequency", error);
+    return { error: SAVE_FAILED_MESSAGE };
+  }
+  if (!isUpdated) {
+    return { error: CONTACT_NOT_FOUND_MESSAGE };
+  }
+
+  // The card shows the new due date, the home page block may change
+  revalidatePath("/");
+  revalidatePath(`/contacts/${parsedId.data}`);
+  return {};
+}
+
+// Does not refresh the page: the caller decides when. The home page block
+// keeps the row for a few seconds, so that the mark can be undone.
+export async function markContactedAction(
+  contactId: number,
+): Promise<MarkContactedResult> {
+  const parsedId = contactIdSchema.safeParse(contactId);
+  if (!parsedId.success) {
+    return { error: CONTACT_NOT_FOUND_MESSAGE };
+  }
+
+  let marked: Awaited<ReturnType<typeof markContacted>>;
+  try {
+    marked = await markContacted(parsedId.data);
+  } catch (error) {
+    console.error("Failed to mark contact as contacted", error);
+    return { error: SAVE_FAILED_MESSAGE };
+  }
+  if (!marked) {
+    return { error: CONTACT_NOT_FOUND_MESSAGE };
+  }
+
+  return {
+    markedAt: marked.markedAt.toISOString(),
+    previous: marked.previous?.toISOString() ?? null,
+  };
+}
+
+// Does not refresh the page either, see markContactedAction
+export async function undoMarkContactedAction(
+  contactId: number,
+  markedAt: string,
+  previous: string | null,
+): Promise<UndoMarkContactedResult> {
+  const parsedId = contactIdSchema.safeParse(contactId);
+  if (!parsedId.success) {
+    return { error: CONTACT_NOT_FOUND_MESSAGE };
+  }
+  const parsedMark = undoMarkContactedSchema.safeParse({ markedAt, previous });
+  if (!parsedMark.success) {
+    return { error: UNDO_NOT_POSSIBLE_MESSAGE };
+  }
+
+  let isRestored: boolean;
+  try {
+    isRestored = await undoMarkContacted(
+      parsedId.data,
+      new Date(parsedMark.data.markedAt),
+      parsedMark.data.previous === null
+        ? null
+        : new Date(parsedMark.data.previous),
+    );
+  } catch (error) {
+    console.error("Failed to undo the contacted mark", error);
+    return { error: SAVE_FAILED_MESSAGE };
+  }
+  if (!isRestored) {
+    return { error: UNDO_NOT_POSSIBLE_MESSAGE };
+  }
+
+  return {};
 }
