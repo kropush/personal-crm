@@ -1,0 +1,39 @@
+schema: spec-driven
+
+context: |
+  Language: Russian (ru)
+  All artifacts must be written in Russian (ru).
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+  Code identifiers (files, tables, fields, functions) stay in English, in backticks.
+
+  Project: personal CRM - contacts of people the owner knows personally.
+  Product idea, main scenario, constraints, out of scope: specs/01-продуктовая-идея.md
+  How we work (branches, PRs, data, deploy, secrets): CLAUDE.md
+  The owner is not a developer: plain words, explain a term the first time it appears.
+  The owner makes product decisions: anything the specs do not say goes to open questions, never guessed.
+
+  Stack: Next.js (App Router), TypeScript, React, Tailwind CSS, shadcn/ui.
+  Colors, fonts and spacing only through design tokens.
+  PostgreSQL + Drizzle: schema and migrations in code. pnpm.
+  Data access only on the server; the browser never talks to the database.
+  A new library or service is a question for the owner, not a decision.
+
+rules:
+  specs:
+    - Scenarios are the feature's acceptance criteria; each one can be checked by hand in the browser
+  design:
+    - If the data model changes, describe the migration and what happens to existing data
+  tasks:
+    - End with a task to tell the owner how to check the result by hand
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing

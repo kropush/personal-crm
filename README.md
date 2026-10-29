@@ -17,7 +17,8 @@
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) — в нём работает база данных;
 - [Node.js](https://nodejs.org/) версии 20.12 или новее;
-- [pnpm](https://pnpm.io/installation).
+- [pnpm](https://pnpm.io/installation);
+- [OpenSpec](https://openspec.dev) — только для работы над требованиями фич, приложению не нужен: `npm install -g @fission-ai/openspec@latest`. Настройки проекта — в `openspec/config.yaml`, команды для Claude Code — `/opsx:propose`, `/opsx:apply`, `/opsx:archive` и другие.
 
 ## Первый запуск
 
@@ -42,7 +43,7 @@
    pnpm db:migrate
    ```
 
-5. По желанию наполните базу тестовыми данными — 1000 выдуманных контактов с заметками:
+5. По желанию наполните базу тестовыми данными — 1000 выдуманных контактов с заметками; у трети из них задано, как часто общаться, у части есть отметка «Связался», а контакты с фамилией Тестов нужны для проверки сроков:
 
    ```
    pnpm db:seed

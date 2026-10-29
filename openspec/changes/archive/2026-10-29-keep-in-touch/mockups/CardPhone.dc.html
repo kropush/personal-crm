@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Карточка — телефон</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f1efeb;-webkit-font-smoothing:antialiased}
+a{color:#0d0c14}a:hover{color:#0d0c14}
+input::placeholder,textarea::placeholder{color:#6b6874}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1660px; overflow: hidden; background: #f1efeb; color: #0d0c14; font-family: 'Inter Tight', ui-sans-serif, system-ui, sans-serif; font-size: 16px; line-height: 1.5">
+  <header style="position: relative; overflow: hidden; height: 96px; background: #08081a">
+    <div aria-hidden="true" style="position: absolute; left: -60px; right: -60px; bottom: -120px; height: 200px; border-radius: 9999px; background: radial-gradient(closest-side, #ff8a3d 0%, #f0564a 22%, #8a4cf0 52%, #3b3ff0 72%, rgba(40, 40, 200, 0) 100%)"></div>
+    <div aria-hidden="true" style="position: absolute; inset: 0; background: repeating-conic-gradient(from 270deg at 50% 100%, rgba(255, 255, 255, 0.14) 0deg 0.25deg, transparent 0.25deg 12deg)"></div>
+    <div style="position: relative; padding: 20px 16px 0; display: flex">
+      <a href="MainPhone.dc.html" style="display: flex; align-items: center; gap: 8px; color: #ffffff; text-decoration: none; font-size: 17px; font-weight: 600; letter-spacing: -0.02em">
+        <span aria-hidden="true" style="width: 18px; height: 18px; border-radius: 5px; background: linear-gradient(to bottom, #4b47f2, #f07a4a)"></span>
+        Личная CRM
+      </a>
+    </div>
+  </header>
+
+  <div style="padding: 32px 16px 64px">
+    <main style="display: flex; flex-direction: column; gap: 24px">
+      <a href="MainPhone.dc.html" style="display: inline-flex; width: fit-content; align-items: center; gap: 8px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; line-height: 16px; letter-spacing: 0.14em; text-transform: uppercase; color: #6b6874; text-decoration: none">
+        <span aria-hidden="true">←</span>
+        Все контакты
+      </a>
+
+      <header style="display: flex; align-items: center; gap: 16px">
+        <span aria-hidden="true" style="display: flex; width: 56px; height: 56px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 9999px; background: linear-gradient(135deg, #8a4cf0, #f0564a); color: #ffffff; font-size: 18px; font-weight: 600">МК</span>
+        <div style="flex: 1; min-width: 0">
+          <h1 style="margin: 0; font-size: 30px; line-height: 1.05; letter-spacing: -0.04em; font-weight: 500; overflow-wrap: break-word">Марина Кузнецова</h1>
+          <p style="margin: 0; color: #6b6874">Бывшая коллега, архитектор</p>
+        </div>
+        <div style="display: flex; flex-shrink: 0; align-items: center; gap: 8px">
+          <a href="#" aria-label="Изменить контакт" style="display: inline-flex; width: 40px; height: 40px; align-items: center; justify-content: center; border: 1px solid #e2dfd9; border-radius: 9999px; background: #ffffff; color: #0d0c14; text-decoration: none">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg>
+          </a>
+          <button type="button" aria-label="Удалить контакт" style="display: inline-flex; width: 40px; height: 40px; align-items: center; justify-content: center; padding: 0; border: 1px solid #e2dfd9; border-radius: 9999px; background: #ffffff; color: #0d0c14; cursor: pointer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+          </button>
+        </div>
+      </header>
+
+      <dl style="display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin: 0; padding: 16px; border-radius: 14px; background: #ffffff; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 10px 24px -18px rgba(30, 20, 80, 0.5); font-size: 14px; line-height: 20px">
+        <dt style="color: #6b6874">Откуда знакомы</dt>
+        <dd style="margin: 0">Работали вместе в проектном бюро, 2018–2021</dd>
+        <dt style="color: #6b6874">Телефон</dt>
+        <dd style="margin: 0"><a href="#" style="color: #0d0c14; text-decoration: none">+7 915 302-46-81</a></dd>
+        <dt style="color: #6b6874">Почта</dt>
+        <dd style="margin: 0"><a href="#" style="color: #0d0c14; text-decoration: none">marina.kuznetsova@example.ru</a></dd>
+      </dl>
+
+      <section aria-labelledby="keep-in-touch-title" style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 14px; background: #ffffff; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 10px 24px -18px rgba(30, 20, 80, 0.5)">
+        <h2 id="keep-in-touch-title" style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Как часто общаться</h2>
+        <div role="group" aria-labelledby="keep-in-touch-title" style="display: flex; flex-wrap: wrap; gap: 8px">
+          <sc-for list="{{ freqs }}" as="f" hint-placeholder-count="5">
+            <button type="button" aria-pressed="{{ f.pressed }}" disabled="{{ f.disabled }}" onClick="{{ f.pick }}" style="height: 44px; padding: 0 16px; border: 1px solid {{ f.border }}; border-radius: 9999px; background: {{ f.bg }}; color: {{ f.fg }}; font-family: inherit; font-size: 15px; font-weight: 500; opacity: {{ f.opacity }}; cursor: pointer">{{ f.label }}</button>
+          </sc-for>
+        </div>
+        <sc-if value="{{ hasStatus }}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px">
+          <p style="display: flex; align-items: flex-start; gap: 8px; margin: 0; font-size: 14px; line-height: 20px; color: #6b6874; opacity: {{ statusOpacity }}">
+            <sc-if value="{{ isFuture }}" hint-placeholder-val="{{ false }}">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 2px"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path></svg>
+            </sc-if>
+            <sc-if value="{{ isDue }}" hint-placeholder-val="{{ true }}">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{ iconColor }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 2px"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2 2"></path><path d="M5 3 2 6"></path><path d="m22 6-3-3"></path></svg>
+            </sc-if>
+            <span><span style="color: {{ leadColor }}; font-weight: 500">{{ lead }}</span> — <span style="color: {{ restColor }}; font-weight: {{ restWeight }}">{{ rest }}</span></span>
+          </p>
+          <sc-if value="{{ showMarkButton }}" hint-placeholder-val="{{ true }}">
+            <button type="button" disabled="{{ markDisabled }}" onClick="{{ markContacted }}" style="display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 16px; flex-shrink: 0; border: 1px solid #e2dfd9; border-radius: 9999px; background: #ffffff; color: #0d0c14; font-family: inherit; font-size: 15px; font-weight: 500; opacity: {{ markOpacity }}; cursor: pointer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+              Связался
+            </button>
+          </sc-if>
+          <sc-if value="{{ justMarked }}" hint-placeholder-val="{{ false }}">
+            <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 15px; line-height: 20px; color: #4a4752">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2fbf71" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+              Отмечено
+              <button type="button" onClick="{{ undoMark }}" style="height: 44px; padding: 0 12px; border: 0; border-radius: 9999px; background: transparent; color: #4b47f2; font-family: inherit; font-size: 15px; font-weight: 500; cursor: pointer">Отменить</button>
+            </span>
+          </sc-if>
+          </div>
+        </sc-if>
+        <sc-if value="{{ markError }}" hint-placeholder-val="{{ false }}">
+          <p role="alert" style="margin: 0; font-size: 14px; line-height: 20px; color: #c42f24">Не удалось сохранить. Проверьте, что база данных запущена, и попробуйте ещё раз.</p>
+        </sc-if>
+        <sc-if value="{{ hasError }}" hint-placeholder-val="{{ false }}">
+          <p role="alert" style="margin: 0; font-size: 14px; line-height: 20px; color: #c42f24">Не удалось сохранить. Проверьте, что база данных запущена, и попробуйте ещё раз.</p>
+        </sc-if>
+      </section>
+
+      <section style="display: flex; flex-direction: column; gap: 16px">
+        <h2 style="margin: 0; font-size: 20px; line-height: 1.2; letter-spacing: -0.025em; font-weight: 600">Заметки</h2>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <textarea ref="{{ noteRef }}" onChange="{{ onNoteChange }}" rows="3" placeholder="О чём поговорили и о чём договорились" aria-label="Новая заметка" aria-invalid="{{ noteInvalid }}" style="display: block; width: 100%; min-height: 96px; resize: vertical; padding: 10px 12px; border: 1px solid {{ noteBorder }}; border-radius: 12px; background: #ffffff; font-family: inherit; font-size: 16px; line-height: 24px; color: #0d0c14"></textarea>
+          <div style="display: flex; align-items: center; gap: 12px">
+            <button type="button" onClick="{{ saveNote }}" style="display: inline-flex; align-items: center; height: 44px; padding: 0 20px; flex-shrink: 0; border: 0; border-radius: 9999px; background: linear-gradient(to right, #4b47f2, #8a4cf0 55%, #f0663f); color: #ffffff; font-family: inherit; font-size: 16px; font-weight: 500; cursor: pointer">Сохранить заметку</button>
+            <p aria-live="polite" style="margin: 0; font-size: 14px; line-height: 20px">
+              <sc-if value="{{ noteError }}" hint-placeholder-val="{{ false }}">
+                <span style="color: #c42f24">Напишите текст заметки</span>
+              </sc-if>
+              <sc-if value="{{ justSaved }}" hint-placeholder-val="{{ false }}">
+                <span style="display: inline-flex; align-items: center; gap: 4px; color: #4a4752">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2fbf71" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+                  Заметка сохранена
+                </span>
+              </sc-if>
+            </p>
+          </div>
+        </div>
+        <ol style="display: flex; flex-direction: column; gap: 12px; list-style: none; margin: 0; padding: 0">
+          <sc-for list="{{ notes }}" as="n" hint-placeholder-count="3">
+            <li style="padding: 16px; border-radius: 14px; background: #ffffff; box-shadow: 0 10px 24px -18px rgba(30, 20, 80, 0.5)">
+              <time style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; line-height: 16px; letter-spacing: 0.14em; text-transform: uppercase; color: #6b6874">{{ n.time }}</time>
+              <p style="margin: 8px 0 0; line-height: 1.625; white-space: pre-wrap; overflow-wrap: break-word">{{ n.body }}</p>
+            </li>
+          </sc-for>
+        </ol>
+      </section>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"highlightOverdue":{"editor":"boolean","default":true,"section":"Срок"},"simulateError":{"editor":"boolean","default":false,"section":"Срок"},"$preview":{"width":390,"height":1660}}'>
+const FREQS = [
+  { id: 'none', label: 'Не задано' },
+  { id: 'week', label: 'Неделя' },
+  { id: 'month', label: 'Месяц' },
+  { id: 'quarter', label: 'Квартал' },
+  { id: 'year', label: 'Год' }
+];
+
+// "Today" is 28 October 2026. The countdown starts from the last note:
+// 16 September before a new note is written, 28 October after it
+const DUE = {
+  old: { week: { overdue: 35 }, month: { overdue: 12 }, quarter: { date: '16 декабря' }, year: { date: '16 сентября 2027' } },
+  fresh: { week: { date: '4 ноября' }, month: { date: '28 ноября' }, quarter: { date: '28 января 2027' }, year: { date: '28 октября 2027' } }
+};
+
+const NOTES = [
+  { time: '16 сентября 2026 г. в 19:40', body: 'Созвонились: Марина в декабре переезжает в Петербург. Обещал скинуть контакты знакомого риелтора.' },
+  { time: '2 августа 2026 г. в 12:15', body: 'Виделись на дне рождения у Лёши. Рассказывала про новую работу в архитектурном бюро — пока нравится, но много переработок.' },
+  { time: '21 июня 2026 г. в 21:03', body: 'Переписывались про поход на Ладогу. Хочет пойти с нами следующим летом.' }
+];
+
+const NEW_NOTE_TIME = '28 октября 2026 г. в 14:05';
+const SAVE_DELAY_MS = 700;
+const UNDO_WINDOW_MS = 5000;
+
+function dayWord(count) {
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+  if (mod10 === 1 && mod100 !== 11) return 'день';
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'дня';
+  return 'дней';
+}
+
+class Component extends DCLogic {
+  componentWillUnmount() {
+    clearTimeout(this.saveTimer);
+    clearTimeout(this.markTimer);
+    clearTimeout(this.undoTimer);
+  }
+
+  // "Связался": the countdown restarts from today, "Отменить" is offered for 5 seconds
+  markContacted() {
+    const s = this.state || {};
+    if (s.markPending || s.justMarked) return;
+    this.setState({ markPending: true, markError: false });
+    clearTimeout(this.markTimer);
+    this.markTimer = setTimeout(() => {
+      const st = this.state || {};
+      if (this.props.simulateError) {
+        this.setState({ markPending: false, markError: true });
+        return;
+      }
+      this.setState({ markPending: false, justMarked: true, freshBeforeMark: !!st.fresh, fresh: true });
+      clearTimeout(this.undoTimer);
+      this.undoTimer = setTimeout(() => this.setState({ justMarked: false }), UNDO_WINDOW_MS);
+    }, SAVE_DELAY_MS);
+  }
+
+  undoMark() {
+    clearTimeout(this.undoTimer);
+    const s = this.state || {};
+    this.setState({ justMarked: false, fresh: !!s.freshBeforeMark });
+  }
+
+  pick(id) {
+    const s = this.state || {};
+    const current = s.frequency || 'month';
+    if (s.pending || id === current) return;
+    this.setState({ pending: id, error: false });
+    clearTimeout(this.saveTimer);
+    this.saveTimer = setTimeout(() => {
+      if (this.props.simulateError) {
+        this.setState({ pending: null, error: true });
+      } else {
+        this.setState({ pending: null, frequency: id });
+      }
+    }, SAVE_DELAY_MS);
+  }
+
+  saveNote() {
+    const s = this.state || {};
+    const text = this.noteEl ? this.noteEl.value.trim() : '';
+    if (!text) {
+      this.setState({ noteError: true, justSaved: false });
+      return;
+    }
+    this.noteEl.value = '';
+    const notes = [{ time: NEW_NOTE_TIME, body: text }].concat(s.notes || NOTES);
+    this.setState({ notes: notes, fresh: true, freshBeforeMark: true, noteError: false, justSaved: true });
+  }
+
+  renderVals() {
+    const s = this.state || {};
+    const highlight = this.props.highlightOverdue ?? true;
+    const frequency = s.frequency || 'month';
+    const pending = s.pending || null;
+    const selected = pending || frequency;
+    const due = frequency === 'none' ? null : DUE[s.fresh ? 'fresh' : 'old'][frequency];
+    const isFuture = !!due && !!due.date;
+    const overdue = due && !due.date ? due.overdue : 0;
+    const isOverdue = !!due && !due.date && overdue > 0;
+
+    let rest = '';
+    if (due) {
+      rest = isFuture ? due.date : overdue === 0 ? 'сегодня' : 'просрочено на ' + overdue + ' ' + dayWord(overdue);
+    }
+
+    return {
+      freqs: FREQS.map((f) => {
+        const on = f.id === selected;
+        return {
+          label: f.label,
+          pressed: on ? 'true' : 'false',
+          disabled: !!pending,
+          pick: () => this.pick(f.id),
+          border: on ? '#4b47f2' : '#e2dfd9',
+          bg: on ? 'rgba(75, 71, 242, 0.08)' : '#ffffff',
+          fg: on ? '#4b47f2' : '#4a4752',
+          opacity: pending ? 0.5 : 1
+        };
+      }),
+
+      hasStatus: !!due && !s.error,
+      statusOpacity: pending ? 0.5 : 1,
+      isFuture: isFuture,
+      isDue: !!due && !isFuture,
+      iconColor: isOverdue && highlight ? '#c42f24' : '#0d0c14',
+      lead: isFuture ? 'Следующий раз' : 'Пора связаться',
+      leadColor: isFuture ? '#6b6874' : '#0d0c14',
+      rest: rest,
+      restColor: isFuture ? '#4a4752' : isOverdue && highlight ? '#c42f24' : '#0d0c14',
+      restWeight: isFuture ? '400' : '500',
+      hasError: !!s.error,
+
+      showMarkButton: !s.justMarked,
+      markDisabled: !!s.markPending || !!pending,
+      markOpacity: s.markPending || pending ? 0.5 : 1,
+      markContacted: () => this.markContacted(),
+      justMarked: !!s.justMarked,
+      undoMark: () => this.undoMark(),
+      markError: !!s.markError && !s.error,
+
+      noteRef: (el) => { this.noteEl = el; },
+      onNoteChange: () => {
+        if (s.noteError || s.justSaved) this.setState({ noteError: false, justSaved: false });
+      },
+      saveNote: () => this.saveNote(),
+      noteInvalid: s.noteError ? 'true' : 'false',
+      noteBorder: s.noteError ? '#c42f24' : '#e2dfd9',
+      noteError: !!s.noteError,
+      justSaved: !s.noteError && !!s.justSaved,
+      notes: s.notes || NOTES
+    };
+  }
+}
+</script>
+</body>
+</html>

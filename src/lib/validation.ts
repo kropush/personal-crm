@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { KEEP_IN_TOUCH_FREQUENCIES } from "@/db/keep-in-touch";
+
 export const CONTACT_LIMITS = {
   name: 120,
   about: 200,
@@ -9,6 +11,10 @@ export const CONTACT_LIMITS = {
 } as const;
 
 export const NOTE_MAX_LENGTH = 5000;
+
+// Also shown by the browser when a request does not reach the server at all
+export const SAVE_FAILED_MESSAGE =
+  "Не удалось сохранить. Проверьте, что база данных запущена, и попробуйте ещё раз.";
 
 // Postgres integer primary keys stop here
 const MAX_ID = 2_147_483_647;
@@ -58,6 +64,17 @@ export const noteSchema = z.object({
 
 export const contactIdSchema = z.number().int().positive().max(MAX_ID);
 
+// null is "Не задано"
+export const keepInTouchFrequencySchema = z
+  .enum(KEEP_IN_TOUCH_FREQUENCIES)
+  .nullable();
+
+// What markContactedAction returned, sent back to undo the mark
+export const undoMarkContactedSchema = z.object({
+  markedAt: z.iso.datetime(),
+  previous: z.iso.datetime().nullable(),
+});
+
 // Parses the [id] URL segment; returns null for anything that is not a valid id
 export function parseContactId(value: string): number | null {
   if (!/^[1-9]\d{0,9}$/.test(value)) {
@@ -83,5 +100,18 @@ export type NoteFormState = {
 };
 
 export type DeleteContactState = {
+  error?: string;
+};
+
+export type SetKeepInTouchFrequencyResult = {
+  error?: string;
+};
+
+// The moments are ISO strings: they go to the browser and back
+export type MarkContactedResult =
+  | { error?: undefined; markedAt: string; previous: string | null }
+  | { error: string };
+
+export type UndoMarkContactedResult = {
   error?: string;
 };

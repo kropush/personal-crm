@@ -7,6 +7,10 @@ import {
   ContactSearch,
   ContactSearchFallback,
 } from "@/components/contact-search";
+import {
+  ReachOutSection,
+  ReachOutSectionSkeleton,
+} from "@/components/reach-out-section";
 import { buttonVariants } from "@/components/ui/button";
 
 export default function ContactsPage({ searchParams }: PageProps<"/">) {
@@ -28,6 +32,10 @@ export default function ContactsPage({ searchParams }: PageProps<"/">) {
           <span className="hidden sm:inline">Добавить контакт</span>
         </Link>
       </div>
+
+      <Suspense fallback={<ReachOutSectionSkeleton />}>
+        <ReachOutSection searchParams={searchParams} />
+      </Suspense>
 
       <Suspense fallback={<ContactListSkeleton />}>
         <ContactList searchParams={searchParams} />
