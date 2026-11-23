@@ -15,6 +15,7 @@ import {
   undoMarkContacted,
   updateContact,
 } from "@/lib/contacts";
+import { logError } from "@/lib/loggable-error";
 import {
   contactIdSchema,
   contactSchema,
@@ -82,7 +83,7 @@ export async function createContactAction(
   try {
     contactId = await createContact(parsed.data);
   } catch (error) {
-    console.error("Failed to create contact", error);
+    logError("Failed to create contact", error);
     return { values, fieldErrors: {}, formError: SAVE_FAILED_MESSAGE };
   }
 
@@ -112,7 +113,7 @@ export async function updateContactAction(
   try {
     isUpdated = await updateContact(parsedId.data, parsed.data);
   } catch (error) {
-    console.error("Failed to update contact", error);
+    logError("Failed to update contact", error);
     return { values, fieldErrors: {}, formError: SAVE_FAILED_MESSAGE };
   }
   if (!isUpdated) {
@@ -138,7 +139,7 @@ export async function deleteContactAction(
   try {
     await deleteContact(parsedId.data);
   } catch (error) {
-    console.error("Failed to delete contact", error);
+    logError("Failed to delete contact", error);
     return { error: DELETE_FAILED_MESSAGE };
   }
 
@@ -173,7 +174,7 @@ export async function addNoteAction(
     }
     await addNote(parsedId.data, parsedNote.data.body);
   } catch (error) {
-    console.error("Failed to add note", error);
+    logError("Failed to add note", error);
     return { body, savedCount, error: SAVE_FAILED_MESSAGE };
   }
 
@@ -203,7 +204,7 @@ export async function setKeepInTouchFrequencyAction(
       parsedFrequency.data,
     );
   } catch (error) {
-    console.error("Failed to set keep-in-touch frequency", error);
+    logError("Failed to set keep-in-touch frequency", error);
     return { error: SAVE_FAILED_MESSAGE };
   }
   if (!isUpdated) {
@@ -230,7 +231,7 @@ export async function markContactedAction(
   try {
     marked = await markContacted(parsedId.data);
   } catch (error) {
-    console.error("Failed to mark contact as contacted", error);
+    logError("Failed to mark contact as contacted", error);
     return { error: SAVE_FAILED_MESSAGE };
   }
   if (!marked) {
@@ -268,7 +269,7 @@ export async function undoMarkContactedAction(
         : new Date(parsedMark.data.previous),
     );
   } catch (error) {
-    console.error("Failed to undo the contacted mark", error);
+    logError("Failed to undo the contacted mark", error);
     return { error: SAVE_FAILED_MESSAGE };
   }
   if (!isRestored) {

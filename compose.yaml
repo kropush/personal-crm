@@ -4,6 +4,9 @@ services:
   postgres:
     image: postgres:18
     restart: unless-stopped
+    # terse: a rejected write is logged without DETAIL, which may hold the whole
+    # row with a person's name, phone and email
+    command: ["postgres", "-c", "log_error_verbosity=terse"]
     environment:
       POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is not set in .env}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set in .env}

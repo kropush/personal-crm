@@ -6,6 +6,7 @@ import { cache } from "react";
 import { getDb } from "@/db";
 import type { KeepInTouchFrequency } from "@/db/keep-in-touch";
 import { contacts, notes, type NewContact } from "@/db/schema";
+import { describeError } from "@/lib/loggable-error";
 import { APP_TIME_ZONE } from "@/lib/time-zone";
 
 const MAX_SEARCH_LENGTH = 100;
@@ -48,17 +49,25 @@ export async function findContactsByName(search: string) {
       ? [sql`case when ${and(...words.map(startsSomeWord))} then 0 else 1 end`]
       : [];
 
-  return getDb()
-    .select({
-      id: contacts.id,
-      name: contacts.name,
-      about: contacts.about,
-      phone: contacts.phone,
-      email: contacts.email,
-    })
-    .from(contacts)
-    .where(matchesEveryWord)
-    .orderBy(...bestMatchesFirst, asc(contacts.name), asc(contacts.id));
+  try {
+    return await getDb()
+      .select({
+        id: contacts.id,
+        name: contacts.name,
+        about: contacts.about,
+        phone: contacts.phone,
+        email: contacts.email,
+      })
+      .from(contacts)
+      .where(matchesEveryWord)
+      .orderBy(...bestMatchesFirst, asc(contacts.name), asc(contacts.id));
+  } catch (error) {
+    // Next.js logs an error thrown while rendering a page. The original one
+    // carries the search words, which are parts of names: see loggable-error.ts
+    throw new Error("Failed to search contacts", {
+      cause: describeError(error),
+    });
+  }
 }
 
 export type ContactListItem = Awaited<
