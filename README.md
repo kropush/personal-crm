@@ -150,6 +150,7 @@ pnpm start
 - `/srv/personal-crm/release-current` и `release-previous` — SHA текущей и предыдущей удачных версий.
 - База данных — в томе Docker `prod_postgres-data`. Выкатка её не удаляет.
 - Настройки nginx для `app.kropcrm.ru` — `/etc/nginx/sites-available/app.kropcrm.ru.conf`, копия — `deploy/nginx/app.kropcrm.ru.conf`. Выкатка их не меняет; если поменяли файл в репозитории — команды для установки написаны в его начале.
+- Журналы nginx для `app.kropcrm.ru` — `/var/log/nginx/app.kropcrm.ru.access.log` и `app.kropcrm.ru.error.log`, хранятся 14 дней. Персональных данных в них нет: адреса страниц записываются без строки поиска, без адреса предыдущей страницы, а в журнал ошибок попадают только критические.
 
 Посмотреть, что запущено, и логи приложения:
 
@@ -157,6 +158,7 @@ pnpm start
 ssh crm
 docker ps
 docker logs --tail 100 prod-app-1
+sudo tail -n 100 /var/log/nginx/app.kropcrm.ru.access.log
 ```
 
 ## Как устроен проект
