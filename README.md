@@ -18,7 +18,20 @@
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) — в нём работает база данных;
 - [Node.js](https://nodejs.org/) версии 20.12 или новее;
 - [pnpm](https://pnpm.io/installation);
-- [OpenSpec](https://openspec.dev) — только для работы над требованиями фич, приложению не нужен: `npm install -g @fission-ai/openspec@latest`. Настройки проекта — в `openspec/config.yaml`, команды для Claude Code — `/opsx:propose`, `/opsx:apply`, `/opsx:archive` и другие.
+
+## Работа с требованиями в OpenSpec
+
+[OpenSpec](https://openspec.dev/docs/installation) нужен для работы над требованиями фич. В PowerShell его можно установить через `npm install -g @fission-ai/openspec@latest`. Для этой установки нужна Node.js версии 22.20.0 или новее.
+
+Проект уже подключён к Codex и Claude Code. После первого открытия проекта перезапустите редактор, если навыки OpenSpec ещё не видны.
+
+| Действие | Codex CLI или расширение | Claude Code |
+| --- | --- | --- |
+| Подготовить требования и план | `$openspec-propose` | `/openspec-propose` |
+| Выполнить согласованный план | `$openspec-apply-change` | `/openspec-apply-change` |
+| Перенести завершённую работу в архив | `$openspec-archive-change` | `/openspec-archive-change` |
+
+В приложении Codex выберите навык OpenSpec в боковой панели. Требования и планы пишутся на русском по правилам в [openspec/config.yaml](openspec/config.yaml). Действующие требования хранятся в [openspec/specs/](openspec/specs/).
 
 ## Первый запуск
 
