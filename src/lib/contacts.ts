@@ -1,11 +1,13 @@
 import "server-only";
 
-import { and, asc, desc, eq, isNotNull, sql, type SQL } from "drizzle-orm";
+import {
+  and, asc, desc, eq, exists, inArray, isNotNull, not, sql, type SQL,
+} from "drizzle-orm";
 import { cache } from "react";
 
 import { getDb } from "@/db";
 import type { KeepInTouchFrequency } from "@/db/keep-in-touch";
-import { contacts, notes, type NewContact } from "@/db/schema";
+import { contactGroups, contacts, groups, notes, type NewContact } from "@/db/schema";
 import { describeError } from "@/lib/loggable-error";
 import { APP_TIME_ZONE } from "@/lib/time-zone";
 
@@ -22,7 +24,24 @@ function escapeLikePattern(value: string) {
   return value.replace(/[\\%_]/g, "\\$&");
 }
 
-export async function findContactsByName(search: string) {
+function belongsToGroup(db: ReturnType<typeof getDb>, groupId: number) {
+  return exists(
+    db
+      .select({ groupId: contactGroups.groupId })
+      .from(contactGroups)
+      .where(
+        and(
+          eq(contactGroups.contactId, contacts.id),
+          eq(contactGroups.groupId, groupId),
+        ),
+      ),
+  );
+}
+
+export async function findContactsByName(
+  search: string,
+  membership?: { groupId: number; exclude?: boolean },
+) {
   const words = normalizeForSearch(search.slice(0, MAX_SEARCH_LENGTH))
     .split(/\s+/)
     .filter(Boolean)
@@ -41,7 +60,6 @@ export async function findContactsByName(search: string) {
   // Every word must occur in the name, in any order:
   // "петров иван" finds "Иван Петров". No words means no filter.
   const matchesEveryWord = and(...words.map(contains));
-
   // Names where the search words begin a word go first:
   // "лев" lists Лев and Левин before Королёв.
   const bestMatchesFirst =
@@ -50,16 +68,31 @@ export async function findContactsByName(search: string) {
       : [];
 
   try {
-    return await getDb()
+    const db = getDb();
+    let membershipCondition;
+    if (membership) {
+      const inGroup = belongsToGroup(db, membership.groupId);
+      membershipCondition = membership.exclude ? not(inGroup) : inGroup;
+    }
+
+    const groupNames = db
+      .select({ name: groups.name })
+      .from(contactGroups)
+      .innerJoin(groups, eq(contactGroups.groupId, groups.id))
+      .where(eq(contactGroups.contactId, contacts.id))
+      .orderBy(asc(groups.name), asc(groups.id));
+
+    return await db
       .select({
         id: contacts.id,
         name: contacts.name,
         about: contacts.about,
         phone: contacts.phone,
         email: contacts.email,
+        groupNames: sql<string[]>`array(${groupNames})`,
       })
       .from(contacts)
-      .where(matchesEveryWord)
+      .where(and(matchesEveryWord, membershipCondition))
       .orderBy(...bestMatchesFirst, asc(contacts.name), asc(contacts.id));
   } catch (error) {
     // Next.js logs an error thrown while rendering a page. The original one
@@ -74,8 +107,12 @@ export type ContactListItem = Awaited<
   ReturnType<typeof findContactsByName>
 >[number];
 
-export async function countContacts() {
-  return getDb().$count(contacts);
+export async function countContacts(groupId?: number) {
+  const db = getDb();
+  return db.$count(
+    contacts,
+    groupId === undefined ? undefined : belongsToGroup(db, groupId),
+  );
 }
 
 // Wrapped in cache() so the page and its metadata share one query per request
@@ -101,22 +138,83 @@ type ContactDetails = Pick<
   "name" | "about" | "howWeMet" | "phone" | "email"
 >;
 
-export async function createContact(values: ContactDetails) {
-  const [created] = await getDb()
-    .insert(contacts)
-    .values(values)
-    .returning({ id: contacts.id });
-  return created.id;
+type TransactionCallback = Parameters<ReturnType<typeof getDb>["transaction"]>[0];
+type ContactTransaction = Parameters<TransactionCallback>[0];
+
+export type ContactGroupSelection = {
+  groupIds: number[];
+  newGroupNames: string[];
+};
+
+export class ContactGroupsChangedError extends Error {}
+
+async function replaceContactGroups(
+  tx: ContactTransaction,
+  contactId: number,
+  { groupIds, newGroupNames }: ContactGroupSelection,
+) {
+  if (groupIds.length) {
+    // Lock selected groups before touching links so deletion cannot race a save.
+    const selected = await tx
+      .select({ id: groups.id })
+      .from(groups)
+      .where(inArray(groups.id, groupIds))
+      .orderBy(asc(groups.id))
+      .for("key share");
+    if (selected.length !== groupIds.length) {
+      throw new ContactGroupsChangedError("A selected group no longer exists");
+    }
+  }
+
+  const created = newGroupNames.length
+    ? await tx
+        .insert(groups)
+        .values(newGroupNames.map((name) => ({ name })))
+        .returning({ id: groups.id })
+    : [];
+  const selectedIds = [...groupIds, ...created.map((group) => group.id)];
+  await tx.delete(contactGroups).where(eq(contactGroups.contactId, contactId));
+  if (selectedIds.length) {
+    await tx.insert(contactGroups).values(
+      selectedIds.map((groupId) => ({ contactId, groupId })),
+    );
+  }
+}
+
+export async function createContact(
+  values: ContactDetails,
+  selection: ContactGroupSelection,
+) {
+  return getDb().transaction(async (tx) => {
+    const [created] = await tx
+      .insert(contacts)
+      .values(values)
+      .returning({ id: contacts.id });
+    if (selection.groupIds.length || selection.newGroupNames.length) {
+      await replaceContactGroups(tx, created.id, selection);
+    }
+    return created.id;
+  });
 }
 
 // Returns false when there is no contact with this id
-export async function updateContact(id: number, values: ContactDetails) {
-  const updated = await getDb()
-    .update(contacts)
-    .set(values)
-    .where(eq(contacts.id, id))
-    .returning({ id: contacts.id });
-  return updated.length > 0;
+export async function updateContact(
+  id: number,
+  values: ContactDetails,
+  selection: ContactGroupSelection,
+) {
+  return getDb().transaction(async (tx) => {
+    // Concurrent edits of the same contact take this row lock before editing links.
+    const [updated] = await tx
+      .update(contacts)
+      .set(values)
+      .where(eq(contacts.id, id))
+      .returning({ id: contacts.id });
+    if (!updated) return false;
+
+    await replaceContactGroups(tx, id, selection);
+    return true;
+  });
 }
 
 // Its notes are deleted too: the foreign key cascades
@@ -183,10 +281,10 @@ export type KeepInTouchStatus = NonNullable<
   Awaited<ReturnType<typeof getKeepInTouchStatus>>
 >;
 
-// For the "Пора связаться" block: everyone whose due date is today or past,
-// the most overdue first
-export async function findContactsToReachOut() {
-  return getDb()
+// Entries due today or earlier, from the selected group when supplied.
+export async function findContactsToReachOut(groupId?: number) {
+  const db = getDb();
+  return db
     .select({
       id: contacts.id,
       name: contacts.name,
@@ -195,7 +293,11 @@ export async function findContactsToReachOut() {
     })
     .from(contacts)
     .where(
-      and(isNotNull(contacts.keepInTouchFrequency), sql`${overdueDays} >= 0`),
+      and(
+        isNotNull(contacts.keepInTouchFrequency),
+        sql`${overdueDays} >= 0`,
+        groupId === undefined ? undefined : belongsToGroup(db, groupId),
+      ),
     )
     .orderBy(asc(dueDate), asc(contacts.name), asc(contacts.id));
 }

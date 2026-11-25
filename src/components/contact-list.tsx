@@ -1,34 +1,38 @@
 import Link from "next/link";
+import { connection } from "next/server";
 
+import { ContactCount } from "@/components/contact-count";
 import { ContactRows } from "@/components/contact-rows";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { countContacts, findContactsByName } from "@/lib/contacts";
-import { formatNumber, pluralize } from "@/lib/format";
+import { getContactFilterGroup } from "@/lib/groups";
+import { contactListHref, firstValue } from "@/lib/search-params";
 import { cn } from "@/lib/utils";
-import { parseContactId } from "@/lib/validation";
+import { parseRecordId } from "@/lib/validation";
 
 type SearchParams = PageProps<"/">["searchParams"];
-
-export function firstValue(value: string | string[] | undefined) {
-  return (Array.isArray(value) ? value[0] : value) ?? "";
-}
 
 export async function ContactList({
   searchParams,
 }: {
   searchParams: SearchParams;
 }) {
+  await connection();
   const params = await searchParams;
   const query = firstValue(params.q).trim();
-  const addedId = parseContactId(firstValue(params.added));
+  const addedId = parseRecordId(firstValue(params.added));
+  const group = await getContactFilterGroup(params.group);
 
   const [contacts, total] = await Promise.all([
-    findContactsByName(query),
-    countContacts(),
+    findContactsByName(query, group ? { groupId: group.id } : undefined),
+    countContacts(group?.id),
   ]);
 
   if (total === 0) {
+    if (group) {
+      return <EmptyState title="В группе пока нет участников" />;
+    }
     return (
       <EmptyState
         title="Здесь пока никого нет"
@@ -49,27 +53,18 @@ export async function ContactList({
       >
         {/* cn() lets the outline border win over the base transparent one */}
         <Link
-          href="/"
+          href={contactListHref("", group?.id)}
           className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
         >
-          Показать всех
+          {group ? "Сбросить поиск" : "Показать всех"}
         </Link>
       </EmptyState>
     );
   }
 
-  const contactForms = { one: "контакт", few: "контакта", many: "контактов" };
-
   return (
-    <section className="flex flex-col gap-3">
-      <p
-        className="font-mono text-label tracking-label text-muted-foreground uppercase"
-        aria-live="polite"
-      >
-        {query
-          ? `Найдено: ${formatNumber(contacts.length)} из ${formatNumber(total)}`
-          : `${formatNumber(total)} ${pluralize(total, contactForms)}`}
-      </p>
+    <section className="flex flex-col gap-3" aria-label="Список контактов">
+      <ContactCount total={total} found={query ? contacts.length : undefined} />
       <ContactRows contacts={contacts} addedId={addedId} />
     </section>
   );
@@ -81,16 +76,18 @@ function EmptyState({
   children,
 }: {
   title: string;
-  description: string;
-  children: React.ReactNode;
+  description?: string;
+  children?: React.ReactNode;
 }) {
   return (
     <div className="flex flex-col items-center gap-4 rounded-card border border-dashed px-6 py-14 text-center">
       <div className="flex flex-col gap-1.5">
         <h2 className="text-subtitle font-semibold text-balance">{title}</h2>
-        <p className="text-sm text-balance text-muted-foreground">
-          {description}
-        </p>
+        {description && (
+          <p className="text-sm text-balance text-muted-foreground">
+            {description}
+          </p>
+        )}
       </div>
       {children}
     </div>

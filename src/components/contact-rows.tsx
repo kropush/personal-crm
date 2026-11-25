@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 
 import { ContactAvatar } from "@/components/contact-avatar";
+import { GroupTags } from "@/components/group-tags";
 import type { ContactListItem } from "@/lib/contacts";
 import { cn } from "@/lib/utils";
 
@@ -13,10 +14,14 @@ import { cn } from "@/lib/utils";
 export function ContactRows({
   contacts,
   addedId,
+  actions,
+  showContactDetails = true,
 }: {
   contacts: ContactListItem[];
   // The contact that has just been created, if the list was opened right after
   addedId: number | null;
+  actions?: Record<number, ReactNode>;
+  showContactDetails?: boolean;
 }) {
   useEffect(() => {
     if (addedId === null) return;
@@ -24,19 +29,31 @@ export function ContactRows({
       .getElementById(`contact-${addedId}`)
       ?.scrollIntoView({ block: "center" });
     // Drop ?added= so that reloading the page does not highlight it again
-    window.history.replaceState(null, "", window.location.pathname);
+    const url = new URL(window.location.href);
+    url.searchParams.delete("added");
+    window.history.replaceState(null, "", url);
   }, [addedId]);
 
   return (
     <ul className="divide-y divide-line-2 overflow-hidden rounded-card bg-card shadow-contact">
       {contacts.map((contact) => {
         const isJustAdded = contact.id === addedId;
+        const action = actions?.[contact.id];
         return (
-          <li key={contact.id} id={`contact-${contact.id}`}>
+          <li
+            key={contact.id}
+            id={`contact-${contact.id}`}
+            className={cn(
+              action && "relative flex items-center gap-2 px-4 py-3 hover:bg-muted has-[:focus-visible]:bg-muted sm:px-5",
+            )}
+          >
             <Link
               href={`/contacts/${contact.id}`}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 outline-none hover:bg-muted focus-visible:bg-muted sm:px-5",
+                "flex min-w-0 flex-1 items-center gap-3 outline-none",
+                action
+                  ? "after:absolute after:inset-0"
+                  : "px-4 py-3 hover:bg-muted focus-visible:bg-muted sm:px-5",
                 isJustAdded && "bg-violet/6 hover:bg-violet/10",
               )}
             >
@@ -55,8 +72,12 @@ export function ContactRows({
                     {contact.about}
                   </div>
                 )}
+                <GroupTags
+                  groups={contact.groupNames.map((name) => ({ name }))}
+                  className="mt-1"
+                />
               </div>
-              {(contact.phone || contact.email) && (
+              {showContactDetails && (contact.phone || contact.email) && (
                 <div className="hidden max-w-[40%] shrink-0 text-right text-sm text-muted-foreground sm:block">
                   {contact.phone && (
                     <div className="truncate">{contact.phone}</div>
@@ -67,6 +88,7 @@ export function ContactRows({
                 </div>
               )}
             </Link>
+            {action}
           </li>
         );
       })}

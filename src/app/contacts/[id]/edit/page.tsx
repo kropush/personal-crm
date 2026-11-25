@@ -6,13 +6,14 @@ import { BackLink } from "@/components/back-link";
 import { ContactForm } from "@/components/contact-form";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getContact } from "@/lib/contacts";
-import { parseContactId } from "@/lib/validation";
+import { getContactGroups, listGroups } from "@/lib/groups";
+import { parseRecordId } from "@/lib/validation";
 
 type Params = PageProps<"/contacts/[id]/edit">["params"];
 
 async function loadContact(params: Params) {
   const { id } = await params;
-  const contactId = parseContactId(id);
+  const contactId = parseRecordId(id);
   return contactId ? getContact(contactId) : undefined;
 }
 
@@ -42,6 +43,10 @@ async function EditContact({ params }: { params: Params }) {
   if (!contact) {
     notFound();
   }
+  const [groups, contactGroups] = await Promise.all([
+    listGroups(),
+    getContactGroups(contact.id),
+  ]);
 
   return (
     <>
@@ -50,6 +55,7 @@ async function EditContact({ params }: { params: Params }) {
         Изменить контакт
       </h1>
       <ContactForm
+        groups={groups}
         contact={{
           id: contact.id,
           values: {
@@ -58,6 +64,9 @@ async function EditContact({ params }: { params: Params }) {
             howWeMet: contact.howWeMet ?? "",
             phone: contact.phone ?? "",
             email: contact.email ?? "",
+            groupIds: contactGroups.map((group) => String(group.id)),
+            newGroupName: "",
+            newGroupNames: [],
           },
         }}
       />

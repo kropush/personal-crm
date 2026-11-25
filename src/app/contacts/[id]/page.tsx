@@ -4,23 +4,26 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
+import { deleteContactAction } from "@/app/actions";
 import { BackLink } from "@/components/back-link";
 import { ContactAvatar } from "@/components/contact-avatar";
-import { DeleteContactButton } from "@/components/delete-contact-button";
+import { DeleteItemButton } from "@/components/delete-item-button";
+import { GroupTags } from "@/components/group-tags";
 import { KeepInTouchControl } from "@/components/keep-in-touch-control";
 import { NoteForm } from "@/components/note-form";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getContact, getKeepInTouchStatus, getNotes } from "@/lib/contacts";
 import { formatDateTime, getPhoneHref } from "@/lib/format";
+import { getContactGroups } from "@/lib/groups";
 import { cn } from "@/lib/utils";
-import { parseContactId } from "@/lib/validation";
+import { parseRecordId } from "@/lib/validation";
 
 type Params = PageProps<"/contacts/[id]">["params"];
 
 async function loadContact(params: Params) {
   const { id } = await params;
-  const contactId = parseContactId(id);
+  const contactId = parseRecordId(id);
   return contactId ? getContact(contactId) : undefined;
 }
 
@@ -47,15 +50,17 @@ async function ContactCard({ params }: { params: Params }) {
   if (!contact) {
     notFound();
   }
-  const [notes, keepInTouchStatus] = await Promise.all([
+  const [notes, keepInTouchStatus, groups] = await Promise.all([
     getNotes(contact.id),
     getKeepInTouchStatus(contact.id),
+    getContactGroups(contact.id),
   ]);
   if (!keepInTouchStatus) {
     // Deleted in another browser a moment ago
     notFound();
   }
   const phoneHref = contact.phone ? getPhoneHref(contact.phone) : null;
+  const hasDetails = contact.howWeMet || contact.phone || contact.email;
 
   return (
     <>
@@ -83,42 +88,49 @@ async function ContactCard({ params }: { params: Params }) {
             {/* Icon only on phones, so the name keeps the room it needs */}
             <span className="hidden sm:inline">Изменить</span>
           </Link>
-          <DeleteContactButton
-            contactId={contact.id}
-            contactName={contact.name}
+          <DeleteItemButton
+            action={deleteContactAction.bind(null, contact.id)}
+            label="Удалить контакт"
+            title={`Удалить контакт «${contact.name}»?`}
+            description="Вместе с контактом удалятся все его заметки. Вернуть не получится."
           />
         </div>
       </header>
 
-      {(contact.howWeMet || contact.phone || contact.email) && (
-        <dl className="grid gap-x-6 gap-y-3 rounded-card bg-card p-4 text-sm shadow-contact sm:grid-cols-[10rem_1fr] sm:p-5">
-          {contact.howWeMet && (
-            <Detail label="Откуда знакомы">
-              <span className="whitespace-pre-wrap">{contact.howWeMet}</span>
-            </Detail>
-          )}
-          {contact.phone && (
-            <Detail label="Телефон">
-              {phoneHref ? (
-                <a href={phoneHref} className="underline-offset-4 hover:underline">
-                  {contact.phone}
-                </a>
-              ) : (
-                contact.phone
+      {(groups.length > 0 || hasDetails) && (
+        <div className="flex flex-col gap-3">
+          <GroupTags groups={groups} large />
+          {hasDetails && (
+            <dl className="grid gap-x-6 gap-y-3 rounded-card bg-card p-4 text-sm shadow-contact sm:grid-cols-[10rem_1fr] sm:p-5">
+              {contact.howWeMet && (
+                <Detail label="Откуда знакомы">
+                  <span className="whitespace-pre-wrap">{contact.howWeMet}</span>
+                </Detail>
               )}
-            </Detail>
+              {contact.phone && (
+                <Detail label="Телефон">
+                  {phoneHref ? (
+                    <a href={phoneHref} className="underline-offset-4 hover:underline">
+                      {contact.phone}
+                    </a>
+                  ) : (
+                    contact.phone
+                  )}
+                </Detail>
+              )}
+              {contact.email && (
+                <Detail label="Почта">
+                  <a
+                    href={`mailto:${contact.email}`}
+                    className="underline-offset-4 hover:underline"
+                  >
+                    {contact.email}
+                  </a>
+                </Detail>
+              )}
+            </dl>
           )}
-          {contact.email && (
-            <Detail label="Почта">
-              <a
-                href={`mailto:${contact.email}`}
-                className="underline-offset-4 hover:underline"
-              >
-                {contact.email}
-              </a>
-            </Detail>
-          )}
-        </dl>
+        </div>
       )}
 
       <KeepInTouchControl contactId={contact.id} status={keepInTouchStatus} />
