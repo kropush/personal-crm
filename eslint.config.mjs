@@ -16,6 +16,11 @@ const eslintConfig = defineConfig([
       "object-curly-spacing": ["error", "always"],
     },
   },
+  {
+    // Next's built-in exemption for Open Graph images only recognizes POSIX paths.
+    files: ["src/app/opengraph-image.tsx"],
+    rules: { "@next/next/no-img-element": "off" },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

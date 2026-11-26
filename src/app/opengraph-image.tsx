@@ -80,7 +80,6 @@ export default function OpengraphImage() {
           fontFamily: "Inter Tight",
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element -- rendered to PNG, not shown in the browser */}
         <img
           src={`data:image/svg+xml;utf8,${encodeURIComponent(backdrop)}`}
           alt=""
