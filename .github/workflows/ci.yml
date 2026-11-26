@@ -1,0 +1,68 @@
+name: CI
+
+on: pull_request
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: PR checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432/tcp
+        options: >-
+          --health-cmd "pg_isready -h 127.0.0.1 -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Check formatting in the PR diff
+        run: git diff --check HEAD^1 HEAD
+
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        run: |
+          npm install --global "$(node -p 'require("./package.json").packageManager')"
+          pnpm install --frozen-lockfile
+
+      - name: Lint and check code formatting
+        run: pnpm lint --max-warnings=0
+
+      - name: Check types
+        run: |
+          pnpm exec next typegen
+          pnpm exec tsc --noEmit
+
+      - name: Run Vitest
+        run: pnpm exec vitest run
+        env:
+          CRM_TEST_POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }}
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium firefox
+
+      - name: Run Playwright
+        run: pnpm test:e2e
+
+      - name: Build the application image
+        run: docker build --tag personal-crm:ci .
