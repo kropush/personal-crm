@@ -6,7 +6,8 @@ import { useOptimistic, useState, useTransition } from "react";
 
 import { setKeepInTouchFrequencyAction } from "@/app/actions";
 import { Button } from "@/components/ui/button";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { ChoicePill } from "@/components/ui/choice-pill";
+import { ToggleGroup } from "@/components/ui/toggle-group";
 import type { KeepInTouchFrequency } from "@/db/keep-in-touch";
 import { useContactedMarks } from "@/hooks/use-contacted-marks";
 import type { KeepInTouchStatus } from "@/lib/contacts";
@@ -102,14 +103,9 @@ export function KeepInTouchControl({
         className="flex-wrap"
       >
         {OPTIONS.map((option) => (
-          <ToggleGroupItem
-            key={option.value}
-            value={option.value}
-            variant="outline"
-            className="h-10 rounded-full border-border bg-card px-4 text-ink-2 aria-pressed:border-primary aria-pressed:bg-primary/8 aria-pressed:text-primary data-disabled:opacity-50 max-sm:h-11 max-sm:text-base"
-          >
+          <ChoicePill key={option.value} value={option.value}>
             {option.label}
-          </ToggleGroupItem>
+          </ChoicePill>
         ))}
       </ToggleGroup>
 

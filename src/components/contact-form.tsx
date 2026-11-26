@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef } from "react";
 
 import { createContactAction, updateContactAction } from "@/app/actions";
+import { ContactGroupFields } from "@/components/contact-group-fields";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Field,
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import type { Group } from "@/db/schema";
 import { CONTACT_LIMITS, type ContactFormValues } from "@/lib/validation";
 
 const EMPTY_VALUES: ContactFormValues = {
@@ -24,9 +26,13 @@ const EMPTY_VALUES: ContactFormValues = {
   howWeMet: "",
   phone: "",
   email: "",
+  groupIds: [],
+  newGroupName: "",
+  newGroupNames: [],
 };
 
 type ContactFormProps = {
+  groups: Group[];
   // Given when editing an existing contact; without it the form adds a new one
   contact?: { id: number; values: ContactFormValues };
 };
@@ -40,7 +46,7 @@ export function ContactForm(props: ContactFormProps) {
   return <ContactFormFields key={bfcacheId} {...props} />;
 }
 
-function ContactFormFields({ contact }: ContactFormProps) {
+function ContactFormFields({ contact, groups }: ContactFormProps) {
   const [state, formAction, isPending] = useActionState(
     contact
       ? updateContactAction.bind(null, contact.id)
@@ -150,6 +156,8 @@ function ContactFormFields({ contact }: ContactFormProps) {
             ? "Обязательно только имя."
             : "Обязательно только имя. Заметки о разговорах можно будет добавлять в карточке контакта."}
         </FieldDescription>
+
+        <ContactGroupFields groups={groups} state={state} disabled={isPending} />
 
         {formError && <FieldError>{formError}</FieldError>}
 

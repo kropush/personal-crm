@@ -62,7 +62,7 @@ export const noteSchema = z.object({
     .max(NOTE_MAX_LENGTH, tooLong(NOTE_MAX_LENGTH)),
 });
 
-export const contactIdSchema = z.number().int().positive().max(MAX_ID);
+export const recordIdSchema = z.number().int().positive().max(MAX_ID);
 
 // null is "Не задано"
 export const keepInTouchFrequencySchema = z
@@ -76,7 +76,7 @@ export const undoMarkContactedSchema = z.object({
 });
 
 // Parses the [id] URL segment; returns null for anything that is not a valid id
-export function parseContactId(value: string): number | null {
+export function parseRecordId(value: string): number | null {
   if (!/^[1-9]\d{0,9}$/.test(value)) {
     return null;
   }
@@ -84,7 +84,11 @@ export function parseContactId(value: string): number | null {
   return id <= MAX_ID ? id : null;
 }
 
-export type ContactFormValues = Record<keyof typeof CONTACT_LIMITS, string>;
+export type ContactFormValues = Record<keyof typeof CONTACT_LIMITS, string> & {
+  groupIds: string[];
+  newGroupName: string;
+  newGroupNames: string[];
+};
 
 export type ContactFormState = {
   values: ContactFormValues;
@@ -99,7 +103,7 @@ export type NoteFormState = {
   savedCount: number;
 };
 
-export type DeleteContactState = {
+export type DeleteFormState = {
   error?: string;
 };
 

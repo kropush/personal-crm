@@ -3,7 +3,7 @@ import { expect, firefox, test, type Page } from "@playwright/test";
 import { existingContactNames } from "./fixtures";
 
 function contactList(page: Page) {
-  return page.getByRole("list").filter({ has: page.locator('[id^="contact-"]') });
+  return page.getByRole("region", { name: "Список контактов" });
 }
 
 test("creates and finds a contact and saves a note visible in another browser", async ({ page, baseURL }) => {

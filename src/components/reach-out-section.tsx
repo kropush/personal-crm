@@ -1,7 +1,10 @@
-import { firstValue } from "@/components/contact-list";
+import { connection } from "next/server";
+
 import { ReachOutList } from "@/components/reach-out-list";
 import { Skeleton } from "@/components/ui/skeleton";
 import { findContactsToReachOut } from "@/lib/contacts";
+import { getContactFilterGroup } from "@/lib/groups";
+import { firstValue } from "@/lib/search-params";
 
 type SearchParams = PageProps<"/">["searchParams"];
 
@@ -11,12 +14,14 @@ export async function ReachOutSection({
 }: {
   searchParams: SearchParams;
 }) {
+  await connection();
   const params = await searchParams;
   if (firstValue(params.q).trim()) {
     return null;
   }
 
-  const contacts = await findContactsToReachOut();
+  const group = await getContactFilterGroup(params.group);
+  const contacts = await findContactsToReachOut(group?.id);
   if (contacts.length === 0) {
     return null;
   }

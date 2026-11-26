@@ -3,7 +3,6 @@
 import { LoaderCircle, Trash2 } from "lucide-react";
 import { useActionState } from "react";
 
-import { deleteContactAction } from "@/app/actions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,17 +15,24 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import type { DeleteContactState } from "@/lib/validation";
+import type { DeleteFormState } from "@/lib/validation";
 
-const initialState: DeleteContactState = {};
+const initialState: DeleteFormState = {};
 
-export function DeleteContactButton({
-  contactId,
-  contactName,
+type DeleteItemProps = {
+  action: (state: DeleteFormState, data: FormData) => Promise<DeleteFormState>;
+  title: string;
+  description: string;
+};
+
+export function DeleteItemButton({
+  action,
+  label,
+  title,
+  description,
 }: {
-  contactId: number;
-  contactName: string;
-}) {
+  label: string;
+} & DeleteItemProps) {
   return (
     <AlertDialog>
       <AlertDialogTrigger
@@ -34,7 +40,7 @@ export function DeleteContactButton({
           <Button
             variant="outline"
             size="icon-lg"
-            aria-label="Удалить контакт"
+            aria-label={label}
             className="hover:text-destructive"
           />
         }
@@ -43,33 +49,24 @@ export function DeleteContactButton({
       </AlertDialogTrigger>
       <AlertDialogContent>
         {/* Mounted anew on every opening, so an old error is not shown again */}
-        <DeleteContactForm contactId={contactId} contactName={contactName} />
+        <DeleteItemForm action={action} title={title} description={description} />
       </AlertDialogContent>
     </AlertDialog>
   );
 }
 
-function DeleteContactForm({
-  contactId,
-  contactName,
-}: {
-  contactId: number;
-  contactName: string;
-}) {
-  const [state, formAction, isPending] = useActionState(
-    deleteContactAction.bind(null, contactId),
-    initialState,
-  );
+function DeleteItemForm({ action, title, description }: DeleteItemProps) {
+  const [state, formAction, isPending] = useActionState(action, initialState);
 
   return (
     // contents: the dialog lays out the header, error and buttons itself
     <form action={formAction} className="contents">
       <AlertDialogHeader>
         <AlertDialogTitle className="break-words">
-          Удалить контакт «{contactName}»?
+          {title}
         </AlertDialogTitle>
         <AlertDialogDescription>
-          Вместе с контактом удалятся все его заметки. Вернуть не получится.
+          {description}
         </AlertDialogDescription>
       </AlertDialogHeader>
 
@@ -85,6 +82,8 @@ function DeleteContactForm({
         </AlertDialogCancel>
         <AlertDialogAction
           type="submit"
+          name="confirmation"
+          value="delete"
           variant="destructive"
           size="lg"
           disabled={isPending}

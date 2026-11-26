@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Группы контактов · Личная CRM</title>
+<style>
+@font-face {
+  font-family: "Inter Tight";
+  src: url("../../../src/assets/fonts/inter-tight-500.ttf") format("truetype");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter Tight";
+  src: url("../../../src/assets/fonts/inter-tight-600.ttf") format("truetype");
+  font-weight: 600;
+  font-display: swap;
+}
+/* Application tokens from src/app/globals.css and the Tailwind spacing scale. */
+:root {
+  --color-white: #fff;
+  --color-paper: #f1efeb;
+  --color-ink: #0d0c14;
+  --color-ink-2: #4a4752;
+  --color-ink-3: #6b6874;
+  --color-line: #e2dfd9;
+  --color-line-2: #eeece8;
+  --color-night: #08081a;
+  --color-indigo: #4b47f2;
+  --color-violet: #8a4cf0;
+  --color-danger: #c42f24;
+  --color-background: var(--color-paper);
+  --color-foreground: var(--color-ink);
+  --color-card: var(--color-white);
+  --color-primary: var(--color-indigo);
+  --color-primary-foreground: var(--color-white);
+  --color-muted-foreground: var(--color-ink-3);
+  --color-border: var(--color-line);
+  --color-destructive: var(--color-danger);
+  --color-ring: var(--color-violet);
+  --font-inter-tight: "Inter Tight";
+  --font-jetbrains-mono: "JetBrains Mono";
+  --font-sans: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --text-title: 30px;
+  --text-title--line-height: 1.05;
+  --text-title--letter-spacing: -0.04em;
+  --text-subtitle: 20px;
+  --text-subtitle--line-height: 1.2;
+  --text-subtitle--letter-spacing: -0.025em;
+  --text-logo: 17px;
+  --text-logo--letter-spacing: -0.02em;
+  --text-label: 11px;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --tracking-label: 0.14em;
+  --radius: 0.75rem;
+  --radius-card: 14px;
+  --spacing: 0.25rem;
+  --shadow-card: 0 10px 24px -18px rgb(30 20 80 / 0.5);
+}
+@media (min-width: 768px) {
+  :root {
+    --text-title: 40px;
+    --text-subtitle: 22px;
+    --text-logo: 20px;
+    --text-label: 12px;
+    --radius-card: 16px;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font: 500 var(--text-base)/1.5 var(--font-sans);
+}
+h1, h2, h3, h4, p, figure { margin: 0; }
+h1, h2, h3, h4, strong { font-weight: 600; }
+h1 {
+  font-size: var(--text-title);
+  line-height: var(--text-title--line-height);
+  letter-spacing: var(--text-title--letter-spacing);
+}
+h2 {
+  margin-bottom: calc(var(--spacing) * 4);
+  font-size: var(--text-subtitle);
+  line-height: var(--text-subtitle--line-height);
+  letter-spacing: var(--text-subtitle--letter-spacing);
+}
+h3, figcaption { font-size: var(--text-lg); font-weight: 600; }
+h4 { font-size: var(--text-base); }
+p + p { margin-top: calc(var(--spacing) * 2); }
+code { font-family: var(--font-mono); font-size: var(--text-sm); overflow-wrap: anywhere; }
+a { color: var(--color-primary); text-underline-offset: 0.2em; }
+a:focus-visible, input:focus-visible { outline: 2px solid var(--color-ring); outline-offset: 3px; }
+main { max-width: 56rem; margin: auto; padding: calc(var(--spacing) * 8) calc(var(--spacing) * 4) calc(var(--spacing) * 16); }
+main > section { margin-top: calc(var(--spacing) * 12); scroll-margin-top: calc(var(--spacing) * 4); }
+.masthead {
+  background: var(--color-night);
+  color: var(--color-white);
+  border-radius: var(--radius-card);
+  padding: calc(var(--spacing) * 7) calc(var(--spacing) * 6);
+  box-shadow: var(--shadow-card);
+}
+.brand {
+  font-size: var(--text-logo);
+  letter-spacing: var(--text-logo--letter-spacing);
+  margin-bottom: calc(var(--spacing) * 4);
+}
+nav, .buttons, .legend { display: flex; flex-wrap: wrap; gap: calc(var(--spacing) * 2) calc(var(--spacing) * 4); align-items: center; }
+nav { margin-top: calc(var(--spacing) * 4); font-size: var(--text-sm); }
+.lead { font-size: var(--text-lg); }
+.muted { color: var(--color-muted-foreground); }
+.small, .example { font-size: var(--text-sm); }
+.status { margin-top: calc(var(--spacing) * 3); color: var(--color-ink-2); }
+.stack, .screens { display: grid; gap: calc(var(--spacing) * 4); }
+.screens { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: calc(var(--spacing) * 4); }
+.card, .device, .schema-frame {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-card);
+  box-shadow: var(--shadow-card);
+  padding: calc(var(--spacing) * 4);
+}
+.device { display: grid; gap: calc(var(--spacing) * 3); margin-top: calc(var(--spacing) * 2); background: var(--color-background); }
+.screen-note { margin-top: calc(var(--spacing) * 2); }
+.new { border: 2px dashed var(--color-primary); border-radius: var(--radius); }
+.new-panel { padding: calc(var(--spacing) * 3); }
+.new-panel > * + * { margin-top: calc(var(--spacing) * 2); }
+.pill, .field, .box {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-card);
+}
+.pill { display: inline-block; padding: calc(var(--spacing) * 1) calc(var(--spacing) * 3); font-size: var(--text-sm); }
+.pill.group-tag { display: inline-flex; min-height: calc(var(--spacing) * 10); align-items: center; padding-inline: calc(var(--spacing) * 4); border-radius: 999px; }
+.pill.primary { color: var(--color-primary-foreground); background: var(--color-primary); border-color: var(--color-primary); }
+.pill.selected { color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 8%, var(--color-card)); border-color: var(--color-primary); }
+.pill.new { border: 2px dashed var(--color-primary); color: var(--color-primary); }
+.pill.destructive { color: var(--color-destructive); }
+.field, .box { padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3); font-size: var(--text-sm); }
+.line { display: block; padding: calc(var(--spacing) * 2) 0; }
+.line + .line { border-top: 1px solid var(--color-border); }
+.box > .line:first-child { padding-top: 0; }
+.box > .line:last-child { padding-bottom: 0; }
+.preview-label { font-size: var(--text-label); text-transform: uppercase; letter-spacing: var(--tracking-label); color: var(--color-muted-foreground); }
+.example {
+  margin-top: calc(var(--spacing) * 2);
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+  border-inline-start: 2px solid var(--color-primary);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--color-line-2);
+}
+.legend { margin-bottom: calc(var(--spacing) * 3); font-size: var(--text-sm); }
+.key { display: inline-flex; gap: calc(var(--spacing) * 2); align-items: center; }
+.swatch { display: inline-block; width: calc(var(--spacing) * 5); height: calc(var(--spacing) * 5); background: var(--color-card); border-radius: var(--radius); border: 1px solid var(--color-border); }
+.swatch.new { border: 2px dashed var(--color-primary); }
+.schema-frame { margin-bottom: calc(var(--spacing) * 3); }
+.schema-frame h3 { margin-bottom: calc(var(--spacing) * 3); }
+.flow { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: calc(var(--spacing) * 2); }
+.flow.after { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1.2fr) auto minmax(0, 0.9fr); }
+.table-card { min-width: 0; border: 1px solid var(--color-border); border-radius: var(--radius); overflow: hidden; align-self: stretch; }
+.table-card.new { border: 2px dashed var(--color-primary); }
+.table-card h4 { background: var(--color-night); color: var(--color-white); padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3); }
+.table-card.new h4 { background: var(--color-primary); }
+.table-card ul { padding: 0; margin: 0; list-style: none; }
+.table-card li { padding: calc(var(--spacing) * 1) calc(var(--spacing) * 3); font-size: var(--text-sm); }
+.table-card li + li { border-top: 1px solid var(--color-border); }
+.connector { color: var(--color-muted-foreground); text-align: center; font-weight: 600; }
+.connector.new-link { color: var(--color-primary); }
+.vertical { display: none; }
+.schema-caption { margin-top: calc(var(--spacing) * 3); }
+.details-box { margin-top: calc(var(--spacing) * 3); }
+.check-group { margin-top: calc(var(--spacing) * 5); }
+.check-group h3 { margin-bottom: calc(var(--spacing) * 2); }
+.check {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: calc(var(--spacing) * 3);
+  padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4);
+  margin-bottom: calc(var(--spacing) * 2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-card);
+  cursor: pointer;
+}
+.check input { width: calc(var(--spacing) * 4); height: calc(var(--spacing) * 4); margin: calc(var(--spacing) * 1) 0 0; accent-color: var(--color-primary); }
+.check input:checked + span > strong { color: var(--color-primary); }
+.check .step { display: block; font-size: var(--text-sm); margin-top: calc(var(--spacing) * 1); color: var(--color-ink-2); }
+.points { padding-left: calc(var(--spacing) * 5); }
+.points li + li { margin-top: calc(var(--spacing) * 2); }
+@media (max-width: 720px) {
+  .flow, .flow.after { grid-template-columns: 1fr; }
+  .horizontal { display: none; }
+  .vertical { display: inline; }
+}
+@media (max-width: 600px) {
+  .screens { grid-template-columns: 1fr; }
+  .masthead { padding: calc(var(--spacing) * 5) calc(var(--spacing) * 4); }
+}
+@media print {
+  nav { display: none; }
+  .card, .device, .schema-frame, .check { break-inside: avoid; box-shadow: none; }
+  .masthead, .table-card h4, .pill.primary { print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header class="masthead">
+    <p class="brand">Личная CRM</p>
+    <h1>Группы контактов</h1>
+  </header>
+  <nav aria-label="Разделы обзора">
+    <a href="#screens">Экраны</a>
+    <a href="#rules">Правила</a>
+    <a href="#data">Модель данных</a>
+    <a href="#checks">Ручная проверка</a>
+    <a href="#decisions">Решения</a>
+  </nav>
+
+  <section aria-labelledby="summary-title">
+    <h2 id="summary-title">Коротко</h2>
+    <p class="lead">Можно собрать знакомых в свои группы, например «Семья», «Теннис» или «Аналитики». Один человек может быть сразу в нескольких группах. Участников можно посмотреть на странице группы или через фильтр на главной.</p>
+    <p class="status"><strong>Реализована.</strong> Интерфейс обновлён по результатам проверки. Сценарии проверяются в Vitest и в браузере на отдельной тестовой базе.</p>
+  </section>
+
+  <section id="screens" aria-labelledby="screens-title">
+    <h2 id="screens-title">Что появится на экранах</h2>
+    <p class="muted small">Пунктиром выделены новые части. Расположение и подписи на набросках показаны для примера.</p>
+    <div class="screens">
+      <figure>
+        <figcaption>Главная</figcaption>
+        <div class="device">
+          <strong>Контакты</strong>
+          <div class="buttons"><span class="field">Найти по имени</span><span class="pill primary">Добавить контакт</span></div>
+          <div class="new new-panel">
+            <div class="buttons"><span class="pill selected">Теннис ▴</span><span class="pill">Список групп</span></div>
+            <div class="box"><span class="field">Найти группу</span><span class="line">Все группы</span><span class="line">Теннис ✓</span></div>
+          </div>
+          <div class="box"><strong>Пора связаться · 1</strong><span class="line">Михаил Орлов (тест) · просрочено</span></div>
+          <div class="new new-panel">
+            <span class="preview-label">2 контакта</span>
+            <div class="box"><span class="line">Анна Петрова<br><span class="muted small">Друзья · Теннис</span></span><span class="line">Борис Соколов<br><span class="muted small">Теннис</span></span></div>
+          </div>
+        </div>
+        <p class="screen-note muted small">Фильтр и переход в список групп стоят сразу под поиском. Выбранная группа ограничивает напоминания и общий список.</p>
+      </figure>
+
+      <figure>
+        <figcaption>Раздел «Группы»</figcaption>
+        <div class="device">
+          <div class="new new-panel">
+            <strong>Группы</strong>
+            <div class="buttons"><span class="pill primary">Добавить группу</span></div>
+            <div class="box">
+              <span class="line">Друзья →</span>
+              <span class="line">Семья →</span>
+              <span class="line">Теннис →</span>
+            </div>
+          </div>
+        </div>
+        <p class="screen-note muted small">Поле названия появится после нажатия «Добавить группу».</p>
+      </figure>
+
+      <figure>
+        <figcaption>Страница группы</figcaption>
+        <div class="device">
+          <div class="new new-panel">
+            <p class="small muted">← Группы</p>
+            <strong>Теннис</strong>
+            <div class="buttons"><span class="pill">Изменить</span><span class="pill destructive">Удалить</span></div>
+            <div class="buttons"><span class="pill">Добавить участника</span></div>
+            <div class="box"><strong>Контакты для добавления</strong><span class="line">Дарья Климова <span class="pill">+</span></span></div>
+            <strong>Участники</strong>
+            <span class="preview-label">2 контакта</span>
+            <div class="box"><span class="line">Анна Петрова →</span><span class="line">Борис Соколов →</span></div>
+          </div>
+        </div>
+        <p class="screen-note muted small">Результаты поиска отделены от участников. Крестик очищает поиск. В строках участников видно имя и группы, а на телефоне действия показаны круглыми иконками, как в шапке.</p>
+      </figure>
+
+      <figure>
+        <figcaption>Подтверждение удаления группы</figcaption>
+        <div class="device">
+          <div class="new new-panel">
+            <strong>Удалить группу «Теннис»?</strong>
+            <p class="small">Контакты и их заметки сохранятся.</p>
+            <div class="buttons"><span class="pill">Отмена</span><span class="pill destructive">Удалить</span></div>
+          </div>
+        </div>
+        <p class="screen-note muted small">Удаление происходит только после подтверждения.</p>
+      </figure>
+
+      <figure>
+        <figcaption>Форма «Новый контакт»</figcaption>
+        <div class="device">
+          <div class="field">Имя · Анна Петрова</div>
+          <p class="muted small">Обязательно только имя. Заметки о разговорах можно будет добавлять в карточке контакта.</p>
+          <div class="new new-panel">
+            <strong>Группы</strong>
+            <div class="buttons"><span class="pill selected">Семья</span><span class="pill selected">Теннис</span><span class="pill">Добавить группу</span></div>
+          </div>
+          <div class="buttons"><span class="pill primary">Сохранить контакт</span><span class="pill">Отмена</span></div>
+        </div>
+      </figure>
+
+      <figure>
+        <figcaption>Форма «Изменить контакт»</figcaption>
+        <div class="device">
+          <div class="field">Имя · Анна Петрова</div>
+          <p class="muted small">Обязательно только имя.</p>
+          <div class="new new-panel">
+            <strong>Группы</strong>
+            <div class="buttons"><span class="pill selected">Семья</span><span class="pill selected">Теннис</span><span class="pill">Добавить группу</span></div>
+            <div class="buttons"><span class="field">Аналитики</span><span class="pill">Добавить</span></div>
+          </div>
+          <div class="buttons"><span class="pill primary">Сохранить изменения</span><span class="pill">Отмена</span></div>
+        </div>
+        <p class="screen-note muted small">Выбранные кнопки подсвечены. Поле нового названия открывается по кнопке «Добавить группу».</p>
+      </figure>
+
+      <figure>
+        <figcaption>Карточка контакта</figcaption>
+        <div class="device">
+          <div class="buttons"><strong>Анна Петрова</strong><span class="pill">Изменить</span></div>
+          <div class="new new-panel">
+            <div class="buttons"><span class="pill group-tag">Семья</span><span class="pill group-tag">Теннис</span></div>
+          </div>
+          <div class="box"><span class="line">Откуда знакомы · Познакомились в теннисном клубе</span></div>
+          <div class="box"><strong>Как часто общаться</strong><div class="buttons"><span class="pill">Не задано</span><span class="pill selected">Неделя</span></div></div>
+          <div class="box"><strong>Заметки</strong><p>Договорились сыграть в субботу.</p></div>
+        </div>
+        <p class="screen-note muted small">Плашки групп над сведениями о контакте по размеру совпадают с кнопками «Как часто общаться».</p>
+      </figure>
+    </div>
+  </section>
+
+  <section id="rules" aria-labelledby="rules-title">
+    <h2 id="rules-title">Как это работает</h2>
+    <div class="stack">
+      <article class="card">
+        <h3>У группы может быть своё название и пустой список</h3>
+        <p>В разделе «Группы» можно сначала создать группу и наполнить её позже. Для сохранения нужно непустое название.</p>
+        <p class="example">Создайте «Аналитики». Страница группы уже доступна и сообщает, что участников пока нет.</p>
+      </article>
+      <article class="card">
+        <h3>Контакт может быть в нескольких группах или вообще без них</h3>
+        <p>В формах можно выбрать существующие группы, добавить новую или убрать любую из выбранных. Новые группы из формы сохраняются вместе с контактом.</p>
+        <p class="example">У Анны выбраны «Семья» и «Теннис». Если убрать «Теннис» и сохранить, Анна останется в группе «Семья» и в общем списке.</p>
+      </article>
+      <article class="card">
+        <h3>Фильтр и поиск работают вместе</h3>
+        <p>Панель позволяет найти и выбрать одну группу для общего списка и напоминаний. Вариант «Все группы» сбрасывает выбор и сохраняет текст поиска по имени. В каждой строке списка видны все группы контакта.</p>
+        <p class="example">В группе «Теннис» поиск «Анна» найдёт Анну Петрову. После сброса группы в результатах появится и Анна Иванова, если она есть в CRM.</p>
+      </article>
+      <article class="card">
+        <h3>При переименовании меняется подпись во всех местах</h3>
+        <p>Прежняя ссылка на страницу группы открывает её с новым названием и тем же составом.</p>
+        <p class="example">«Теннис» становится «Теннис по субботам». Это название видно также в фильтре, форме и карточке контакта.</p>
+      </article>
+      <article class="card">
+        <h3>Удаление группы убирает её из списков</h3>
+        <p>После подтверждения удаляется группа и её связи с участниками. Карточки, данные, заметки и участие в других группах сохраняются.</p>
+        <p class="example">Если удалить «Семья», Анна останется в CRM и в группе «Теннис».</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="data" aria-labelledby="data-title">
+    <h2 id="data-title">Модель данных до и после</h2>
+    <p class="legend"><span class="key"><span class="swatch new" aria-hidden="true"></span>Новое</span><span class="key"><span class="swatch" aria-hidden="true"></span>Как было</span></p>
+
+    <figure class="schema-frame">
+      <h3>Сейчас</h3>
+      <div class="flow">
+        <div class="table-card">
+          <h4><code>contacts</code></h4>
+          <ul><li>Номер и имя</li><li>Сведения о человеке и способы связи</li><li>Настройки общения</li></ul>
+        </div>
+        <span class="connector" aria-hidden="true"><span class="horizontal">→</span><span class="vertical">↓</span></span>
+        <div class="table-card">
+          <h4><code>notes</code></h4>
+          <ul><li>Номер заметки</li><li>Номер контакта</li><li>Текст и дата заметки</li></ul>
+        </div>
+      </div>
+      <figcaption class="schema-caption small muted">У одного контакта может быть несколько заметок.</figcaption>
+    </figure>
+
+    <figure class="schema-frame">
+      <h3>После</h3>
+      <div class="flow after">
+        <div class="table-card">
+          <h4><code>notes</code></h4>
+          <ul><li>Номер заметки</li><li>Номер контакта</li><li>Текст и дата</li></ul>
+        </div>
+        <span class="connector" aria-hidden="true"><span class="horizontal">←</span><span class="vertical">↑</span></span>
+        <div class="table-card">
+          <h4><code>contacts</code></h4>
+          <ul><li>Номер и имя</li><li>Данные контакта</li><li>Настройки общения</li></ul>
+        </div>
+        <span class="connector new-link" aria-hidden="true"><span class="horizontal">→</span><span class="vertical">↓</span></span>
+        <div class="table-card new">
+          <h4><code>contact_groups</code></h4>
+          <ul><li>Номер контакта</li><li>Номер группы</li><li>Одна запись на пару</li></ul>
+        </div>
+        <span class="connector new-link" aria-hidden="true"><span class="horizontal">←</span><span class="vertical">↑</span></span>
+        <div class="table-card new">
+          <h4><code>groups</code></h4>
+          <ul><li>Номер группы</li><li>Название</li></ul>
+        </div>
+      </div>
+      <figcaption class="schema-caption small muted">Таблица связей хранит, кто входит в какую группу.</figcaption>
+      <p class="example"><strong>Как найдутся свои участники.</strong> У Анны есть связи с «Теннис» и «Семья», у Бориса только с «Теннис», у Веры связей нет. При запросе группы «Теннис» база по её номеру найдёт Анну и Бориса. Вера останется в общем списке.</p>
+    </figure>
+
+    <article class="card details-box">
+      <h3>Одно обновление базы</h3>
+      <p>Миграция (изменение устройства базы) добавит две пустые таблицы и связи между ними и контактами. По номеру группы база сможет быстро найти участников. Записи контактов, заметок и настроек общения сохранятся. Обновление базы пройдёт до запуска новой версии приложения.</p>
+    </article>
+    <article class="card details-box">
+      <h3>Как вернуться к прежней версии</h3>
+      <p>При ручном откате можно вернуть прежнюю версию приложения и оставить новые таблицы в базе. Группы снова будут доступны при запуске новой версии.</p>
+    </article>
+  </section>
+
+  <section id="checks" aria-labelledby="checks-title">
+    <h2 id="checks-title">Как проверить руками</h2>
+    <p class="muted small">После реализации отмечайте пройденные сценарии. Примеры можно проверять на отдельных тестовых контактах и группах.</p>
+    <div class="check-group" data-requirement="create-in-section">
+      <h3>Создание в разделе «Группы»</h3>
+      <label class="check"><input type="checkbox"><span><strong>Создал группу в разделе</strong><span class="step"><b>Сделайте.</b> Откройте «Группы», нажмите «Добавить группу», создайте «Теннис» и обновите страницу.</span><span class="step"><b>Проверьте.</b> Поле появилось по кнопке. «Теннис» есть в списке и доступен в форме контакта.</span></span></label>
+      <label class="check"><input type="checkbox"><span><strong>Оставил название пустым</strong><span class="step"><b>Сделайте.</b> Попробуйте создать группу с пустым полем, затем с одними пробелами.</span><span class="step"><b>Проверьте.</b> Форма просит указать название. В списке группа не появляется.</span></span></label>
+    </div>
+    <div class="check-group" data-requirement="create-in-form">
+      <h3>Создание в форме контакта</h3>
+      <label class="check"><input type="checkbox"><span><strong>Создал группу при добавлении контакта</strong><span class="step"><b>Сделайте.</b> В форме нового контакта добавьте «Аналитики» и сохраните контакт.</span><span class="step"><b>Проверьте.</b> Группа есть в карточке и разделе «Группы». Контакт есть на странице группы.</span></span></label>
+      <label class="check"><input type="checkbox"><span><strong>Создал группу при редактировании контакта</strong><span class="step"><b>Сделайте.</b> Откройте редактирование контакта из группы «Друзья». Добавьте новую группу «Теннис» и сохраните.</span><span class="step"><b>Проверьте.</b> В карточке видны обе группы, контакт есть на странице каждой.</span></span></label>
+      <label class="check"><input type="checkbox"><span><strong>Отменил форму с новой группой</strong><span class="step"><b>Сделайте.</b> В форме контакта введите название новой группы и нажмите «Отмена».</span><span class="step"><b>Проверьте.</b> Группа в разделе «Группы» не появилась. Сохранённые данные контакта прежние.</span></span></label>
+      <label class="check"><input type="checkbox"><span><strong>Форма контакта не прошла проверку</strong><span class="step"><b>Сделайте.</b> В форме нового контакта добавьте название новой группы, оставьте имя человека пустым и нажмите «Сохранить контакт».</span><span class="step"><b>Проверьте.</b> Форма указывает на пустое имя и сохраняет введённое название. В разделе «Группы» этой группы ещё нет.</span></span></label>
+    </div>
+    <div class="check-group" data-requirement="membership">
+      <h3>Участие в группах</h3>
+      <label class="check"><input type="checkbox"><span><strong>Выбрал две существующие группы</strong><span class="step"><b>Сделайте.</b> При создании контакта выберите «Семья» и «Теннис». Сохраните и откройте карточку в другом браузере.</span><span class="step"><b>Проверьте.</b> В карточке видны обе группы, контакт есть на странице каждой.</span></span></label>
+      <label class="check"><input type="checkbox"><span><strong>Убрал контакт из одной группы</strong><span class="step"><b>Сделайте.</b> У контакта из «Семья» и «Теннис» уберите «Теннис» и сохраните форму.</span><span class="step"><b>Проверьте.</b> В карточке осталась «Семья». Со страницы «Теннис» контакт пропал.</span></span></label>
+      <label class="check"><input type="checkbox"><span><strong>Убрал последнюю группу</strong><span class="step"><b>Сделайте.</b> Снимите выбор единственной группы у контакта и сохраните.</span><span class="step"><b>Проверьте.</b> В карточке больше нет названий групп. Контакт виден в общем списке.</span></span></label>
+    </div>
+    <div class="check-group" data-requirement="filter">
+      <h3>Фильтр и поиск на главной</h3>
+      <label class="check"><input type="checkbox"><span><strong>Выбрал и сбросил фильтр</strong><span class="step"><b>Сделайте.</b> Откройте панель над «Пора связаться», найдите «Теннис» и выберите его. Снова откройте панель и выберите «Все группы».</span><span class="step"><b>Проверьте.</b> При выбранном «Теннис» видны участники со всеми их группами в строках. После сброса видны все контакты.</span></span></label>
+      <label class="check"><input type="checkbox"><span><strong>Ищу по имени в выбранной группе</strong><span class="step"><b>Сделайте.</b> Добавьте в «Теннис» Анну Петрову. Анну Иванову оставьте вне группы. Выберите «Теннис», введите «Анна» и сбросьте только фильтр группы.</span><span class="step"><b>Проверьте.</b> Сначала видна Анна Петрова. После сброса в поле остаётся «Анна» и видны обе Анны.</span></span></label>
+      <label class="check"><input type="checkbox"><span><strong>Отфильтровал напоминания</strong><span class="step"><b>Сделайте.</b> На тестовой базе выберите «Друзья», затем «Все группы».</span><span class="step"><b>Проверьте.</b> В «Друзьях» в блоке остаётся Дарья Климова. После сброса видны Дарья и Михаил Орлов.</span></span></label>
+    </div>
+    <div class="check-group" data-requirement="group-page">
+      <h3>Страница группы</h3>
+      <label class="check"><input type="checkbox"><span><strong>Открыл карточку со страницы группы</strong><span class="step"><b>Сделайте.</b> Откройте «Друзья» из раздела «Группы». Нажмите на Анну в списке.</span><span class="step"><b>Проверьте.</b> Открывается карточка Анны с группой «Друзья».</span></span></label>
+      <label class="check"><input type="checkbox"><span><strong>Открыл пустую группу</strong><span class="step"><b>Сделайте.</b> Создайте в разделе группу без участников и откройте её.</span><span class="step"><b>Проверьте.</b> Видны её название и сообщение, что участников пока нет.</span></span></label>
+      <label class="check"><input type="checkbox"><span><strong>Сразу убрал добавленного участника</strong><span class="step"><b>Сделайте.</b> Найдите Анну через «Добавить участника», добавьте её и сразу нажмите «Убрать из группы».</span><span class="step"><b>Проверьте.</b> Поиск очистился после добавления. После снятия участия Анна исчезла из группы и не появилась снова в старых результатах.</span></span></label>
+      <label class="check"><input type="checkbox"><span><strong>Сбросил результаты поиска</strong><span class="step"><b>Сделайте.</b> Найдите контакт через «Добавить участника» и нажмите крестик в поле.</span><span class="step"><b>Проверьте.</b> Поле пустое, результаты исчезли, а состав и счётчик сохранились. На телефоне добавление и снятие участия отображаются иконками.</span></span></label>
+    </div>
+    <div class="check-group" data-requirement="rename">
+      <h3>Переименование</h3>
+      <label class="check"><input type="checkbox"><span><strong>Переименовал группу с участниками</strong><span class="step"><b>Сделайте.</b> Откройте «Теннис», где есть Анна, и нажмите «Изменить» перед удалением. Сохраните «Теннис по субботам».</span><span class="step"><b>Проверьте.</b> Прежняя ссылка открывает группу с новым названием и Анной. Название также обновилось в разделе, фильтре, форме, строке списка и карточке.</span></span></label>
+    </div>
+    <div class="check-group" data-requirement="delete">
+      <h3>Удаление и отмена</h3>
+      <label class="check"><input type="checkbox"><span><strong>Подтвердил удаление группы</strong><span class="step"><b>Сделайте.</b> Пусть Анна входит в «Семья» и «Друзья» и у неё есть заметка. Подтвердите удаление группы «Семья».</span><span class="step"><b>Проверьте.</b> «Семья» исчезла из раздела, фильтра и карточки. Анна видна в общем списке и в «Друзья». Заметка на месте.</span></span></label>
+      <label class="check"><input type="checkbox"><span><strong>Передумал удалять группу</strong><span class="step"><b>Сделайте.</b> Откройте подтверждение удаления группы и нажмите «Отмена».</span><span class="step"><b>Проверьте.</b> Группа открывается с прежним составом.</span></span></label>
+    </div>
+    <div class="check-group" data-requirement="migration">
+      <h3>Проверка после обновления базы</h3>
+      <label class="check"><input type="checkbox"><span><strong>Открыл существующую базу после обновления</strong><span class="step"><b>Сделайте.</b> После обновления тестовой базы со старыми контактами, заметками и настройками общения откройте главную и одну из карточек.</span><span class="step"><b>Проверьте.</b> Контакты видны на главной. В карточке на месте заметки и настройки общения. Раздел «Группы» пуст, названий групп в карточках ещё нет.</span></span></label>
+    </div>
+  </section>
+
+  <section id="decisions" aria-labelledby="decisions-title">
+    <h2 id="decisions-title">Что агент решил сам</h2>
+    <div class="stack">
+      <article class="card">
+        <h3>Продуктовые решения</h3>
+        <p class="small muted">Эти решения я предложил, и вы их согласовали.</p>
+        <ul class="points">
+          <li>Новая группа в форме сохраняется вместе с контактом. При отмене формы группа не создаётся.</li>
+          <li>Фильтр выбирает одну группу за раз и применяется к блоку «Пора связаться» и общему списку.</li>
+        </ul>
+        <p>В плане также предусмотрены подтверждение удаления и сохранение текста поиска при сбросе группы.</p>
+      </article>
+      <article class="card">
+        <h3>Технические решения</h3>
+        <ul class="points">
+          <li>Хранить названия отдельно от списка связей. У каждой группы один номер, который остаётся прежним после переименования.</li>
+          <li>Записывать изменения контакта, новые группы и связи одним действием. При ошибке база сохраняет прежнее состояние.</li>
+          <li>Хранить поиск и выбранную группу в адресе главной. Обновление страницы и кнопки браузера восстанавливают состояние по адресу.</li>
+          <li>Использовать общие формы, строки контактов и диалог подтверждения приложения.</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section aria-labelledby="questions-title">
+    <h2 id="questions-title">Что осталось неясным</h2>
+    <p>Открытых вопросов в плане нет.</p>
+  </section>
+</main>
+</body>
+</html>
