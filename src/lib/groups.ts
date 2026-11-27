@@ -9,10 +9,7 @@ import { firstValue } from "@/lib/search-params";
 import { parseRecordId } from "@/lib/validation";
 
 export async function listGroups() {
-  return getDb()
-    .select()
-    .from(groups)
-    .orderBy(asc(groups.name), asc(groups.id));
+  return getDb().select().from(groups).orderBy(asc(groups.name), asc(groups.id));
 }
 
 export async function createGroup(name: string) {
@@ -64,9 +61,9 @@ export async function setGroupMember(groupId: number, contactId: number, isMembe
     if (isMember) {
       await tx.insert(contactGroups).values({ groupId, contactId }).onConflictDoNothing();
     } else {
-      await tx.delete(contactGroups).where(
-        and(eq(contactGroups.groupId, groupId), eq(contactGroups.contactId, contactId)),
-      );
+      await tx
+        .delete(contactGroups)
+        .where(and(eq(contactGroups.groupId, groupId), eq(contactGroups.contactId, contactId)));
     }
     return true;
   });

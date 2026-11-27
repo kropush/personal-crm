@@ -3,13 +3,8 @@ import { existsSync } from "node:fs";
 // Connection settings are built from the same POSTGRES_* variables that
 // compose.yaml uses, so .env stays the single source of truth for the database.
 export function getDatabaseConfig() {
-  const {
-    POSTGRES_USER,
-    POSTGRES_PASSWORD,
-    POSTGRES_DB,
-    POSTGRES_HOST,
-    POSTGRES_PORT,
-  } = process.env;
+  const { POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, POSTGRES_HOST, POSTGRES_PORT } =
+    process.env;
 
   if (!POSTGRES_USER || !POSTGRES_PASSWORD || !POSTGRES_DB) {
     throw new Error(

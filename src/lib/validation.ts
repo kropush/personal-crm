@@ -65,9 +65,7 @@ export const noteSchema = z.object({
 export const recordIdSchema = z.number().int().positive().max(MAX_ID);
 
 // null is "Не задано"
-export const keepInTouchFrequencySchema = z
-  .enum(KEEP_IN_TOUCH_FREQUENCIES)
-  .nullable();
+export const keepInTouchFrequencySchema = z.enum(KEEP_IN_TOUCH_FREQUENCIES).nullable();
 
 // What markContactedAction returned, sent back to undo the mark
 export const undoMarkContactedSchema = z.object({
@@ -113,8 +111,7 @@ export type SetKeepInTouchFrequencyResult = {
 
 // The moments are ISO strings: they go to the browser and back
 export type MarkContactedResult =
-  | { error?: undefined; markedAt: string; previous: string | null }
-  | { error: string };
+  { error?: undefined; markedAt: string; previous: string | null } | { error: string };
 
 export type UndoMarkContactedResult = {
   error?: string;

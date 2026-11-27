@@ -43,7 +43,7 @@ export function GroupNameForm({
             aria-label={editing ? "Изменить группу" : undefined}
             aria-expanded={isOpen}
             aria-controls={isOpen ? formId : undefined}
-            onClick={() => isOpen ? close() : setIsOpen(true)}
+            onClick={() => (isOpen ? close() : setIsOpen(true))}
           >
             {editing ? (
               <>

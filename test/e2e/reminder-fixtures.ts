@@ -4,7 +4,13 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
 import { getDatabaseConfig } from "../../src/db/config";
-import { contactGroups, contacts, groups, type Contact, type NewContact } from "../../src/db/schema";
+import {
+  contactGroups,
+  contacts,
+  groups,
+  type Contact,
+  type NewContact,
+} from "../../src/db/schema";
 
 type ReminderData = {
   addContacts(values: NewContact[]): Promise<Contact[]>;
@@ -28,9 +34,9 @@ export const test = base.extend<{ reminderData: ReminderData }>({
         async addGroup(name, members) {
           const [group] = await db.insert(groups).values({ name }).returning();
           groupIds.push(group.id);
-          await db.insert(contactGroups).values(
-            members.map((contact) => ({ contactId: contact.id, groupId: group.id })),
-          );
+          await db
+            .insert(contactGroups)
+            .values(members.map((contact) => ({ contactId: contact.id, groupId: group.id })));
         },
       });
     } finally {

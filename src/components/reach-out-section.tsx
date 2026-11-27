@@ -9,11 +9,7 @@ import { firstValue } from "@/lib/search-params";
 type SearchParams = PageProps<"/">["searchParams"];
 
 // The "Пора связаться" block. Not shown while searching or when nobody is due
-export async function ReachOutSection({
-  searchParams,
-}: {
-  searchParams: SearchParams;
-}) {
+export async function ReachOutSection({ searchParams }: { searchParams: SearchParams }) {
   await connection();
   const params = await searchParams;
   if (firstValue(params.q).trim()) {

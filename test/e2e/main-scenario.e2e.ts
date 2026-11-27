@@ -23,7 +23,10 @@ function dueLine(page: Page) {
   return frequencyControl(page).getByText(/^(Следующий раз|Пора связаться) — /);
 }
 
-test("creates and finds a contact and shares its frequency and note across browsers", async ({ page, baseURL }) => {
+test("creates and finds a contact and shares its frequency and note across browsers", async ({
+  page,
+  baseURL,
+}) => {
   const name = "Elena Sokolova";
   const note = "Agreed to meet for coffee on Friday.";
   const list = contactList(page);
@@ -52,7 +55,9 @@ test("creates and finds a contact and shares its frequency and note across brows
     await expect(list.getByRole("link")).toHaveCount(1);
     await newContact.click();
     await expect(page.getByRole("heading", { name, level: 1 })).toBeVisible();
-    await expect(frequencyControl(page).getByRole("button", { name: "Не задано", pressed: true })).toBeVisible();
+    await expect(
+      frequencyControl(page).getByRole("button", { name: "Не задано", pressed: true }),
+    ).toBeVisible();
     await expect(frequencyControl(page).getByRole("button", { name: "Связался" })).toHaveCount(0);
     await expect(dueLine(page)).toHaveCount(0);
   });
@@ -68,7 +73,9 @@ test("creates and finds a contact and shares its frequency and note across brows
     await frequencyControl(page).getByRole("button", { name: "Месяц", exact: true }).click();
     await expect(dueLine(page)).toContainText("Следующий раз");
     await page.reload();
-    await expect(frequencyControl(page).getByRole("button", { name: "Месяц", pressed: true })).toBeVisible();
+    await expect(
+      frequencyControl(page).getByRole("button", { name: "Месяц", pressed: true }),
+    ).toBeVisible();
   });
 
   await test.step("See the same contacts, frequency and saved note in Firefox", async () => {
@@ -87,7 +94,9 @@ test("creates and finds a contact and shares its frequency and note across brows
       await otherList.getByRole("link", { name, exact: true }).click();
       await expect(otherPage.getByRole("heading", { name, level: 1 })).toBeVisible();
       await expect(otherPage.getByRole("listitem").getByText(note, { exact: true })).toBeVisible();
-      await expect(frequencyControl(otherPage).getByRole("button", { name: "Месяц", pressed: true })).toBeVisible();
+      await expect(
+        frequencyControl(otherPage).getByRole("button", { name: "Месяц", pressed: true }),
+      ).toBeVisible();
     } finally {
       await browser.close();
     }
@@ -100,14 +109,19 @@ test("creates and finds a contact and shares its frequency and note across brows
   });
 });
 
-test("saving an overdue contact's note restarts its deadline and removes the reminder", async ({ page, reminderData }) => {
+test("saving an overdue contact's note restarts its deadline and removes the reminder", async ({
+  page,
+  reminderData,
+}) => {
   const name = "Overdue Note Contact";
   const note = "Had a long conversation today.";
-  await reminderData.addContacts([{
-    name,
-    keepInTouchFrequency: "week",
-    keepInTouchSetAt: new Date("2020-01-01T12:00:00Z"),
-  }]);
+  await reminderData.addContacts([
+    {
+      name,
+      keepInTouchFrequency: "week",
+      keepInTouchSetAt: new Date("2020-01-01T12:00:00Z"),
+    },
+  ]);
 
   await page.goto("/");
   const row = reminderRow(page, name);
@@ -136,7 +150,10 @@ test("saving an overdue contact's note restarts its deadline and removes the rem
   await expect(reminders(page)).toHaveCount(0);
 });
 
-test("marks contacts from their cards and the home page and offers a five-second undo window", async ({ page, reminderData }) => {
+test("marks contacts from their cards and the home page and offers a five-second undo window", async ({
+  page,
+  reminderData,
+}) => {
   const old = new Date("2020-01-01T12:00:00Z");
   const [first, second, early] = await reminderData.addContacts([
     { name: "First Mark Contact", keepInTouchFrequency: "month", keepInTouchSetAt: old },
@@ -166,9 +183,15 @@ test("marks contacts from their cards and the home page and offers a five-second
     const originalDue = await dueLine(page).innerText();
     await frequencyControl(page).getByRole("button", { name: "Связался", exact: true }).click();
     await expect(dueLine(page)).not.toHaveText(originalDue);
-    await expect(frequencyControl(page).getByRole("button", { name: "Отменить", exact: true })).toBeVisible();
-    await expect(frequencyControl(page).getByRole("button", { name: "Связался", exact: true })).toBeVisible();
-    await expect(frequencyControl(page).getByRole("button", { name: "Отменить", exact: true })).toHaveCount(0);
+    await expect(
+      frequencyControl(page).getByRole("button", { name: "Отменить", exact: true }),
+    ).toBeVisible();
+    await expect(
+      frequencyControl(page).getByRole("button", { name: "Связался", exact: true }),
+    ).toBeVisible();
+    await expect(
+      frequencyControl(page).getByRole("button", { name: "Отменить", exact: true }),
+    ).toHaveCount(0);
   });
 
   await test.step("Mark and undo from the home page, then let the mark take effect", async () => {
@@ -208,17 +231,24 @@ test("marks contacts from their cards and the home page and offers a five-second
   });
 });
 
-test("shows the oldest five reminders, expands, and applies search and group filters", async ({ page, reminderData }) => {
-  const due = await reminderData.addContacts(Array.from({ length: 12 }, (_, index) => ({
-    name: `Reminder Queue ${index + 1}`,
-    keepInTouchFrequency: "week",
-    keepInTouchSetAt: new Date(Date.UTC(2020, 0, index + 1, 12)),
-  })));
-  const [future] = await reminderData.addContacts([{
-    name: "Future Reminder",
-    keepInTouchFrequency: "week",
-    keepInTouchSetAt: new Date(),
-  }]);
+test("shows the oldest five reminders, expands, and applies search and group filters", async ({
+  page,
+  reminderData,
+}) => {
+  const due = await reminderData.addContacts(
+    Array.from({ length: 12 }, (_, index) => ({
+      name: `Reminder Queue ${index + 1}`,
+      keepInTouchFrequency: "week",
+      keepInTouchSetAt: new Date(Date.UTC(2020, 0, index + 1, 12)),
+    })),
+  );
+  const [future] = await reminderData.addContacts([
+    {
+      name: "Future Reminder",
+      keepInTouchFrequency: "week",
+      keepInTouchSetAt: new Date(),
+    },
+  ]);
   await reminderData.addGroup("First Reminder Group", [due[0]]);
   await reminderData.addGroup("Five Reminder Group", due.slice(1, 6));
   await reminderData.addGroup("Future Reminder Group", [future]);
@@ -230,7 +260,10 @@ test("shows the oldest five reminders, expands, and applies search and group fil
   const expand = block.getByRole("button", { name: "Показать всех (12)" });
   await expect(rows).toHaveCount(5);
   for (const [index, contact] of due.slice(0, 5).entries()) {
-    await expect(rows.nth(index).getByRole("link")).toHaveAttribute("href", `/contacts/${contact.id}`);
+    await expect(rows.nth(index).getByRole("link")).toHaveAttribute(
+      "href",
+      `/contacts/${contact.id}`,
+    );
   }
   await expand.click();
   await expect(rows).toHaveCount(12);

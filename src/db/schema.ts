@@ -12,10 +12,7 @@ import {
 
 import { KEEP_IN_TOUCH_FREQUENCIES } from "./keep-in-touch";
 
-export const keepInTouchFrequency = pgEnum(
-  "keep_in_touch_frequency",
-  KEEP_IN_TOUCH_FREQUENCIES,
-);
+export const keepInTouchFrequency = pgEnum("keep_in_touch_frequency", KEEP_IN_TOUCH_FREQUENCIES);
 
 export const contacts = pgTable(
   "contacts",
@@ -28,9 +25,7 @@ export const contacts = pgTable(
     howWeMet: text("how_we_met"),
     phone: text(),
     email: text(),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     keepInTouchFrequency: keepInTouchFrequency("keep_in_touch_frequency"),
     // When the frequency was chosen last: the countdown starts here
     // while there are no notes and no "contacted" mark yet
@@ -55,9 +50,7 @@ export const notes = pgTable(
       .notNull()
       .references(() => contacts.id, { onDelete: "cascade" }),
     body: text().notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("notes_contact_id_idx").on(table.contactId)],
 );

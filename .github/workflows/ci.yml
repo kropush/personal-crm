@@ -14,38 +14,28 @@ jobs:
     name: PR checks
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_HOST_AUTH_METHOD: trust
-        ports:
-          - 5432/tcp
-        options: >-
-          --health-cmd "pg_isready -h 127.0.0.1 -U postgres"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 12
-
     steps:
       - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 2
           persist-credentials: false
 
-      - name: Check formatting in the PR diff
+      - name: Check whitespace in the PR diff
         run: git diff --check HEAD^1 HEAD
 
       - uses: actions/setup-node@v7.1.0
         with:
-          node-version: '24'
+          node-version: "24"
 
       - name: Install dependencies
         run: |
           npm install --global "$(node -p 'require("./package.json").packageManager')"
           pnpm install --frozen-lockfile
 
-      - name: Lint and check code formatting
+      - name: Check formatting with Prettier
+        run: pnpm format:check
+
+      - name: Lint
         run: pnpm lint --max-warnings=0
 
       - name: Check types
@@ -54,11 +44,7 @@ jobs:
           pnpm exec tsc --noEmit
 
       - name: Run Vitest
-        run: |
-          test "$CRM_TEST_POSTGRES_PORT" -gt 0
-          pnpm exec vitest run
-        env:
-          CRM_TEST_POSTGRES_PORT: ${{ job.services.postgres.ports[5432] }}
+        run: pnpm test
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium firefox

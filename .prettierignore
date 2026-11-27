@@ -1,0 +1,13 @@
+# Generated files
+/drizzle/meta/
+/pnpm-lock.yaml
+
+# Agent instructions, product specs, and local browser artifacts
+/.agents/
+/.claude/
+/.codex/
+/.playwright-mcp/
+/AGENTS.md
+/CLAUDE.md
+/openspec/
+/specs/

@@ -3,12 +3,7 @@ import { useId, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ChoicePill, choicePillClassName } from "@/components/ui/choice-pill";
-import {
-  FieldError,
-  FieldLabel,
-  FieldLegend,
-  FieldSet,
-} from "@/components/ui/field";
+import { FieldError, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup } from "@/components/ui/toggle-group";
 import type { Group } from "@/db/schema";
@@ -83,10 +78,7 @@ export function ContactGroupFields({
             <Button
               type="button"
               variant="outline"
-              className={cn(
-                choicePillClassName,
-                "border-primary bg-primary/8 text-primary",
-              )}
+              className={cn(choicePillClassName, "border-primary bg-primary/8 text-primary")}
               aria-label={`Убрать новую группу «${name}»`}
               onClick={() => removeDraft(index)}
             >
@@ -102,7 +94,7 @@ export function ContactGroupFields({
           className={choicePillClassName}
           aria-expanded={isAdding}
           aria-controls={isAdding ? editorId : undefined}
-          onClick={() => isAdding ? closeEditor() : setIsAdding(true)}
+          onClick={() => (isAdding ? closeEditor() : setIsAdding(true))}
         >
           <Plus />
           Добавить группу
@@ -129,12 +121,7 @@ export function ContactGroupFields({
               aria-describedby={fieldErrors.newGroupName ? "new-group-error" : undefined}
               className="min-w-0 flex-1"
             />
-            <Button
-              type="button"
-              variant="outline"
-              onClick={addDraft}
-              disabled={!draft.trim()}
-            >
+            <Button type="button" variant="outline" onClick={addDraft} disabled={!draft.trim()}>
               Добавить
             </Button>
           </div>

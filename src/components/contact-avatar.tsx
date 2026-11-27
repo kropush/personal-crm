@@ -1,13 +1,7 @@
 import { cn } from "@/lib/utils";
 import { getInitials } from "@/lib/format";
 
-export function ContactAvatar({
-  name,
-  className,
-}: {
-  name: string;
-  className?: string;
-}) {
+export function ContactAvatar({ name, className }: { name: string; className?: string }) {
   return (
     <span
       aria-hidden

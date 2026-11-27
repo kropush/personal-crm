@@ -26,9 +26,7 @@ export async function generateMetadata({
   };
 }
 
-export default function EditContactPage({
-  params,
-}: PageProps<"/contacts/[id]/edit">) {
+export default function EditContactPage({ params }: PageProps<"/contacts/[id]/edit">) {
   return (
     <main className="flex flex-col gap-6">
       <Suspense fallback={<EditContactSkeleton />}>
@@ -43,17 +41,12 @@ async function EditContact({ params }: { params: Params }) {
   if (!contact) {
     notFound();
   }
-  const [groups, contactGroups] = await Promise.all([
-    listGroups(),
-    getContactGroups(contact.id),
-  ]);
+  const [groups, contactGroups] = await Promise.all([listGroups(), getContactGroups(contact.id)]);
 
   return (
     <>
       <BackLink href={`/contacts/${contact.id}`}>Назад к контакту</BackLink>
-      <h1 className="text-title font-medium">
-        Изменить контакт
-      </h1>
+      <h1 className="text-title font-medium">Изменить контакт</h1>
       <ContactForm
         groups={groups}
         contact={{

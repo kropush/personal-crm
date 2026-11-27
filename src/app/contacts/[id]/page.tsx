@@ -27,9 +27,7 @@ async function loadContact(params: Params) {
   return contactId ? getContact(contactId) : undefined;
 }
 
-export async function generateMetadata({
-  params,
-}: PageProps<"/contacts/[id]">): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps<"/contacts/[id]">): Promise<Metadata> {
   const contact = await loadContact(params);
   return { title: contact?.name ?? "Контакт не найден" };
 }
@@ -67,12 +65,8 @@ async function ContactCard({ params }: { params: Params }) {
       <header className="flex items-center gap-4">
         <ContactAvatar name={contact.name} className="size-14 text-lg" />
         <div className="min-w-0 flex-1">
-          <h1 className="text-title font-medium break-words">
-            {contact.name}
-          </h1>
-          {contact.about && (
-            <p className="break-words text-muted-foreground">{contact.about}</p>
-          )}
+          <h1 className="text-title font-medium break-words">{contact.name}</h1>
+          {contact.about && <p className="break-words text-muted-foreground">{contact.about}</p>}
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <Link
@@ -153,9 +147,7 @@ async function ContactCard({ params }: { params: Params }) {
                 >
                   {formatDateTime(note.createdAt)}
                 </time>
-                <p className="mt-2 leading-relaxed break-words whitespace-pre-wrap">
-                  {note.body}
-                </p>
+                <p className="mt-2 leading-relaxed break-words whitespace-pre-wrap">{note.body}</p>
               </li>
             ))}
           </ol>
@@ -165,13 +157,7 @@ async function ContactCard({ params }: { params: Params }) {
   );
 }
 
-function Detail({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function Detail({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="contents">
       <dt className="text-muted-foreground">{label}</dt>

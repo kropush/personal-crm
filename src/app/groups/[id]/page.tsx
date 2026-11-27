@@ -74,24 +74,24 @@ async function GroupDetails({ params, searchParams }: GroupPageProps) {
         />
       </GroupNameForm>
       <details key={search === undefined ? "closed" : "search"} open={search !== undefined}>
-        <summary className={buttonVariants({
-          variant: "outline",
-          size: "lg",
-          className: "w-fit cursor-pointer list-none [&::-webkit-details-marker]:hidden",
-        })}>
+        <summary
+          className={buttonVariants({
+            variant: "outline",
+            size: "lg",
+            className: "w-fit cursor-pointer list-none [&::-webkit-details-marker]:hidden",
+          })}
+        >
           <UserPlus />
           Добавить участника
         </summary>
         <GroupMemberSearch groupId={group.id} query={query}>
           {query && (
             <section className="flex flex-col gap-3" aria-labelledby="candidates-heading">
-              <h2 id="candidates-heading" className="font-semibold">Контакты для добавления</h2>
+              <h2 id="candidates-heading" className="font-semibold">
+                Контакты для добавления
+              </h2>
               {candidates.length ? (
-                <GroupContactRows
-                  contacts={candidates}
-                  groupId={group.id}
-                  operation="add"
-                />
+                <GroupContactRows contacts={candidates} groupId={group.id} operation="add" />
               ) : (
                 <p className="text-sm text-muted-foreground">
                   Подходящих контактов для добавления нет.
@@ -102,14 +102,12 @@ async function GroupDetails({ params, searchParams }: GroupPageProps) {
         </GroupMemberSearch>
       </details>
       <section className="flex flex-col gap-3" aria-labelledby="members-heading">
-        <h2 id="members-heading" className="text-subtitle font-semibold">Участники</h2>
+        <h2 id="members-heading" className="text-subtitle font-semibold">
+          Участники
+        </h2>
         <ContactCount total={members.length} />
         {members.length ? (
-          <GroupContactRows
-            contacts={members}
-            groupId={group.id}
-            operation="remove"
-          />
+          <GroupContactRows contacts={members} groupId={group.id} operation="remove" />
         ) : (
           <p className="rounded-card border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
             Участников пока нет.
@@ -135,14 +133,16 @@ function GroupContactRows({
       contacts={contacts}
       addedId={null}
       showContactDetails={operation === "add"}
-      actions={Object.fromEntries(contacts.map((contact) => [
-        contact.id,
-        <GroupMembershipButton
-          key={contact.id}
-          action={action.bind(null, groupId, contact.id)}
-          operation={operation}
-        />,
-      ]))}
+      actions={Object.fromEntries(
+        contacts.map((contact) => [
+          contact.id,
+          <GroupMembershipButton
+            key={contact.id}
+            action={action.bind(null, groupId, contact.id)}
+            operation={operation}
+          />,
+        ]),
+      )}
     />
   );
 }

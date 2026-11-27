@@ -31,7 +31,9 @@ export function GroupMembershipButton({
         <span className="hidden sm:inline">{label}</span>
       </Button>
       {state.error && (
-        <p role="alert" className="text-right text-sm text-destructive">{state.error}</p>
+        <p role="alert" className="text-right text-sm text-destructive">
+          {state.error}
+        </p>
       )}
     </form>
   );

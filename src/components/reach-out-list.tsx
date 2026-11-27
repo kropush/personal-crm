@@ -7,10 +7,7 @@ import { useEffect, useState } from "react";
 
 import { ContactAvatar } from "@/components/contact-avatar";
 import { Button } from "@/components/ui/button";
-import {
-  useContactedMarks,
-  type ContactedMarkState,
-} from "@/hooks/use-contacted-marks";
+import { useContactedMarks, type ContactedMarkState } from "@/hooks/use-contacted-marks";
 import type { ReachOutItem } from "@/lib/contacts";
 import { FREQUENCY_LABELS, formatNumber, formatOverdue } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -33,8 +30,7 @@ export function ReachOutList({ contacts }: { contacts: ReachOutItem[] }) {
   }
 
   const marks = useContactedMarks({
-    onUndoWindowEnd: (contactId) =>
-      setHiddenIds((previous) => new Set(previous).add(contactId)),
+    onUndoWindowEnd: (contactId) => setHiddenIds((previous) => new Set(previous).add(contactId)),
   });
 
   // Brings the block from the server once no row can be undone any more:
@@ -45,15 +41,11 @@ export function ReachOutList({ contacts }: { contacts: ReachOutItem[] }) {
     }
   }, [marks.isBusy, hiddenIds, router]);
 
-  const visibleContacts = contacts.filter(
-    (contact) => !hiddenIds.has(contact.id),
-  );
+  const visibleContacts = contacts.filter((contact) => !hiddenIds.has(contact.id));
   if (visibleContacts.length === 0) {
     return null;
   }
-  const shownContacts = isExpanded
-    ? visibleContacts
-    : visibleContacts.slice(0, VISIBLE_COUNT);
+  const shownContacts = isExpanded ? visibleContacts : visibleContacts.slice(0, VISIBLE_COUNT);
 
   return (
     <section aria-labelledby="reach-out-title" className="mb-4 flex flex-col gap-3">
@@ -84,13 +76,8 @@ export function ReachOutList({ contacts }: { contacts: ReachOutItem[] }) {
             onClick={() => setIsExpanded(!isExpanded)}
             className="flex h-12 w-full items-center justify-center gap-1.5 border-t border-line-2 text-sm font-medium text-ink-2 outline-none hover:bg-muted focus-visible:bg-muted"
           >
-            {isExpanded
-              ? "Свернуть"
-              : `Показать всех (${formatNumber(visibleContacts.length)})`}
-            <ChevronDown
-              aria-hidden
-              className={cn("size-4", isExpanded && "rotate-180")}
-            />
+            {isExpanded ? "Свернуть" : `Показать всех (${formatNumber(visibleContacts.length)})`}
+            <ChevronDown aria-hidden className={cn("size-4", isExpanded && "rotate-180")} />
           </button>
         )}
       </div>
@@ -115,8 +102,7 @@ function ReachOutRow({
     <li
       className={cn(
         "relative flex items-center gap-3 px-4 py-3 has-[a:focus-visible]:bg-muted has-[a:hover]:bg-muted sm:px-5",
-        isMarked &&
-          "bg-violet/6 has-[a:focus-visible]:bg-violet/10 has-[a:hover]:bg-violet/10",
+        isMarked && "bg-violet/6 has-[a:focus-visible]:bg-violet/10 has-[a:hover]:bg-violet/10",
       )}
     >
       {/* The link stretches over the whole row; the button sits next to it,
@@ -142,9 +128,7 @@ function ReachOutRow({
               {FREQUENCY_LABELS[contact.frequency]} ·{" "}
               <span
                 className={
-                  contact.overdueDays > 0
-                    ? "text-destructive"
-                    : "font-medium text-foreground"
+                  contact.overdueDays > 0 ? "text-destructive" : "font-medium text-foreground"
                 }
               >
                 {formatOverdue(contact.overdueDays)}

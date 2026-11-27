@@ -17,9 +17,7 @@ type LoggableError = { [field: string]: string | LoggableError | undefined };
 
 // So that the log line does not list fields that are not there
 function withoutEmpty(fields: LoggableError): LoggableError {
-  return Object.fromEntries(
-    Object.entries(fields).filter(([, value]) => value !== undefined),
-  );
+  return Object.fromEntries(Object.entries(fields).filter(([, value]) => value !== undefined));
 }
 
 function readCode(error: Error) {

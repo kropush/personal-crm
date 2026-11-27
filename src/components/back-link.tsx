@@ -1,13 +1,7 @@
 import Link from "next/link";
 
 // Small caps link in the style of the landing page labels
-export function BackLink({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) {
+export function BackLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <Link
       href={href}
