@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Deploys one version of the app on the server:
-#   image from GHCR -> migrations in a one-off container -> new app container
+#   database backup -> image from GHCR -> migrations -> new app container
 #   -> smoke check of /health -> only the current and the previous image stay.
 #
 #   deploy.sh <tag>    tag = full SHA of the commit the image was built from
@@ -14,21 +14,13 @@ set -euo pipefail
 
 tag="${1:?Usage: deploy.sh <image tag (commit SHA)>}"
 
-root=/srv/personal-crm
-image=ghcr.io/kropush/personal-crm
+source "$(dirname -- "${BASH_SOURCE[0]}")/database.sh"
+
 # Tags of the versions that passed the smoke check
 current_file="$root/release-current"
 previous_file="$root/release-previous"
 
 export APP_TAG="$tag"
-
-compose() {
-  docker compose -p prod -f "$root/deploy/compose.yaml" --env-file "$root/.env" "$@"
-}
-
-log() {
-  echo "==> $*"
-}
 
 smoke_check() {
   local url="$1"
@@ -43,6 +35,21 @@ smoke_check() {
   done
   curl -fsS --max-time 5 "$@" "$url"
 }
+
+lock_production
+
+backup_tag="$(installed_app_tag)"
+if [[ -z "$backup_tag" ]]; then
+  if [[ -f "$current_file" ]]; then
+    backup_tag="$(cat "$current_file")"
+  fi
+  backup_tag="${backup_tag:-initial}"
+fi
+
+log "Waiting for the database"
+# Keep the existing database container in place until its backup is saved.
+compose up -d --wait --no-recreate postgres </dev/null
+backup_database pre-deploy "$backup_tag"
 
 log "Deploying $image:$tag"
 
@@ -64,8 +71,8 @@ else
   DOCKER_CONFIG="$docker_config" docker pull "$image:$tag"
 fi
 
-log "Starting the database"
-compose up -d --wait postgres
+log "Applying database container configuration"
+compose up -d --wait postgres </dev/null
 
 log "Applying migrations"
 # A failed migration stops the script here: the new app version does not start
