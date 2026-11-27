@@ -47,7 +47,9 @@ services:
     image: ghcr.io/kropush/personal-crm:${APP_TAG:?APP_TAG is not set}
     command: ["node", "migrate.cjs"]
     profiles: [tools]
-    environment: *app-environment
+    environment:
+      <<: *app-environment
+      CRM_OWNER_EMAIL: ${CRM_OWNER_EMAIL:-}
     depends_on:
       postgres:
         condition: service_healthy
@@ -56,7 +58,12 @@ services:
   app:
     image: ghcr.io/kropush/personal-crm:${APP_TAG:?APP_TAG is not set}
     restart: unless-stopped
-    environment: *app-environment
+    environment:
+      <<: *app-environment
+      CRM_APP_URL: https://app.kropcrm.ru
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-}
+      CRM_MAIL_TRANSPORT: resend
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
     ports:
       # Localhost only: the app is reachable from outside through nginx
       - "127.0.0.1:3000:3000"

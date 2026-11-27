@@ -7,20 +7,22 @@ import { ContactForm } from "@/components/contact-form";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getContact } from "@/lib/contacts";
 import { getContactGroups, listGroups } from "@/lib/groups";
+import { requireUser } from "@/lib/session";
 import { parseRecordId } from "@/lib/validation";
 
 type Params = PageProps<"/contacts/[id]/edit">["params"];
 
-async function loadContact(params: Params) {
+async function loadContact(params: Params, ownerId: string) {
   const { id } = await params;
   const contactId = parseRecordId(id);
-  return contactId ? getContact(contactId) : undefined;
+  return contactId ? getContact(ownerId, contactId) : undefined;
 }
 
 export async function generateMetadata({
   params,
 }: PageProps<"/contacts/[id]/edit">): Promise<Metadata> {
-  const contact = await loadContact(params);
+  const { id: ownerId } = await requireUser();
+  const contact = await loadContact(params, ownerId);
   return {
     title: contact ? `Изменить: ${contact.name}` : "Контакт не найден",
   };
@@ -37,11 +39,15 @@ export default function EditContactPage({ params }: PageProps<"/contacts/[id]/ed
 }
 
 async function EditContact({ params }: { params: Params }) {
-  const contact = await loadContact(params);
+  const { id: ownerId } = await requireUser();
+  const contact = await loadContact(params, ownerId);
   if (!contact) {
     notFound();
   }
-  const [groups, contactGroups] = await Promise.all([listGroups(), getContactGroups(contact.id)]);
+  const [groups, contactGroups] = await Promise.all([
+    listGroups(ownerId),
+    getContactGroups(ownerId, contact.id),
+  ]);
 
   return (
     <>

@@ -7,7 +7,7 @@ import { withTemporaryPostgres } from "./temporary-postgres";
 async function main() {
   const vitestCli = join(dirname(require.resolve("vitest/package.json")), "vitest.mjs");
   await withTemporaryPostgres("postgres", async ({ port, password }) => {
-    const vitest = spawn(process.execPath, [vitestCli, "run"], {
+    const vitest = spawn(process.execPath, [vitestCli, "run", ...process.argv.slice(2)], {
       env: {
         ...process.env,
         CRM_TEST_POSTGRES_PORT: String(port),

@@ -5,6 +5,7 @@ import { ContactList, ContactListSkeleton } from "@/components/contact-list";
 import { ContactSearch, ContactSearchFallback } from "@/components/contact-search";
 import { ReachOutSection, ReachOutSectionSkeleton } from "@/components/reach-out-section";
 import { listGroups } from "@/lib/groups";
+import { requireUser } from "@/lib/session";
 
 export default function ContactsPage({ searchParams }: PageProps<"/">) {
   return (
@@ -28,5 +29,6 @@ export default function ContactsPage({ searchParams }: PageProps<"/">) {
 
 async function ContactSearchWithGroups() {
   await connection();
-  return <ContactSearch groups={await listGroups()} />;
+  const { id: ownerId } = await requireUser();
+  return <ContactSearch groups={await listGroups(ownerId)} />;
 }

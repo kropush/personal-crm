@@ -24,6 +24,7 @@ RUN pnpm exec esbuild src/db/migrate.ts --bundle --platform=node --format=cjs \
 # --- Runtime ----------------------------------------------------------------
 FROM base AS runtime
 LABEL org.opencontainers.image.source="https://github.com/kropush/personal-crm"
+LABEL com.kropcrm.contact-ownership="true"
 WORKDIR /app
 
 ENV NODE_ENV=production

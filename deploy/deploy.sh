@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Deploys one version of the app on the server:
-#   database backup -> image from GHCR -> migrations -> new app container
+#   image from GHCR -> database backup -> migrations -> new app container
 #   -> smoke check of /health -> only the current and the previous image stay.
 #
 #   deploy.sh <tag>    tag = full SHA of the commit the image was built from
@@ -46,11 +46,6 @@ if [[ -z "$backup_tag" ]]; then
   backup_tag="${backup_tag:-initial}"
 fi
 
-log "Waiting for the database"
-# Keep the existing database container in place until its backup is saved.
-compose up -d --wait --no-recreate postgres </dev/null
-backup_database pre-deploy "$backup_tag"
-
 log "Deploying $image:$tag"
 
 if docker image inspect "$image:$tag" >/dev/null 2>&1; then
@@ -70,6 +65,35 @@ else
   fi
   DOCKER_CONFIG="$docker_config" docker pull "$image:$tag"
 fi
+
+log "Waiting for the database"
+# Keep the existing database container in place until its backup is saved.
+compose up -d --wait --no-recreate postgres </dev/null
+
+target_uses_ownership="$(docker image inspect --format '{{ index .Config.Labels "com.kropcrm.contact-ownership" }}' "$image:$tag")"
+database_uses_ownership="$(compose exec -T postgres sh -ec '
+  exec psql --no-psqlrc --no-password --tuples-only --no-align --set=ON_ERROR_STOP=1 \
+    --username="$POSTGRES_USER" --dbname="$POSTGRES_DB"
+' <<'SQL'
+SELECT to_regclass('public."user"') IS NOT NULL;
+SQL
+)"
+
+if [[ "$target_uses_ownership" == true ]]; then
+  if ! compose run --rm --no-deps --entrypoint /bin/sh app -ec '
+    test "${#BETTER_AUTH_SECRET}" -ge 32 && test -n "$RESEND_API_KEY"
+  ' </dev/null; then
+    fail "Set BETTER_AUTH_SECRET (at least 32 characters) and RESEND_API_KEY before deploying sign-in."
+  fi
+  if [[ "$database_uses_ownership" == f ]]; then
+    log "Stopping the old app before the ownership migration backup"
+    compose stop app </dev/null
+  fi
+elif [[ "$database_uses_ownership" == t ]]; then
+  fail "Restore the matching pre-ownership backup before deploying this older image."
+fi
+
+backup_database pre-deploy "$backup_tag"
 
 log "Applying database container configuration"
 compose up -d --wait postgres </dev/null

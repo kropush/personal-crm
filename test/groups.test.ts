@@ -21,7 +21,7 @@ import { ContactForm } from "@/components/contact-form";
 import { ContactList } from "@/components/contact-list";
 import { ReachOutSection } from "@/components/reach-out-section";
 import { getDb } from "@/db";
-import { contactGroups, contacts, groups, notes } from "@/db/schema";
+import { contactGroups, contacts, groups, notes, user } from "@/db/schema";
 import { findContactsByName, getContact, getNotes } from "@/lib/contacts";
 import { getContactGroups, getGroup, listGroups } from "@/lib/groups";
 import type { ContactFormState } from "@/lib/validation";
@@ -37,6 +37,10 @@ vi.mock("next/navigation", async (importOriginal) => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 vi.mock("@/db", () => ({ getDb: vi.fn(() => database.db) }));
+
+vi.mock("@/lib/session", () => ({ requireUser: async () => ({ id: ownerId }) }));
+
+const ownerId = "groups-owner";
 
 let database: Awaited<ReturnType<typeof openTestDatabase>>;
 
@@ -68,12 +72,15 @@ function groupNameForm(name: string) {
 }
 
 async function seedGroup(name: string) {
-  const [group] = await database.db.insert(groups).values({ name }).returning();
+  const [group] = await database.db
+    .insert(groups)
+    .values({ name, ownerId })
+    .returning({ id: groups.id, name: groups.name });
   return group;
 }
 
 async function seedContact(name: string) {
-  const [contact] = await database.db.insert(contacts).values({ name }).returning();
+  const [contact] = await database.db.insert(contacts).values({ name, ownerId }).returning();
   return contact;
 }
 
@@ -121,6 +128,7 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
   beforeAll(async () => {
     database = await openTestDatabase();
     await migrate(database.db, { migrationsFolder: "./drizzle" });
+    await database.db.insert(user).values({ id: ownerId, name: "", email: "groups@example.com" });
   });
 
   afterAll(async () => {
@@ -152,23 +160,25 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
     const state = await createGroupAction({ name: "" }, groupNameForm(" Tennis "));
 
     expect(state.error).toBeUndefined();
-    expect(await listGroups()).toContainEqual({ id: expect.any(Number), name: "Tennis" });
+    expect(await listGroups(ownerId)).toContainEqual({ id: expect.any(Number), name: "Tennis" });
     expect(await database.db.$count(contactGroups)).toBe(0);
   });
 
   it.each(["", "   "])("rejects the blank name %j", async (name) => {
-    const before = await listGroups();
+    const before = await listGroups(ownerId);
     const state = await createGroupAction({ name: "" }, groupNameForm(name));
 
     expect(state.error).toBe("Укажите название группы");
-    expect(await listGroups()).toEqual(before);
+    expect(await listGroups(ownerId)).toEqual(before);
   });
 
   it("shows members with links to their contact cards", async () => {
     const group = await seedGroup("Members");
     const member = await seedContact("Member Test");
     await seedContact("Other Person");
-    await database.db.insert(contactGroups).values({ contactId: member.id, groupId: group.id });
+    await database.db
+      .insert(contactGroups)
+      .values({ ownerId, contactId: member.id, groupId: group.id });
 
     const html = await renderGroupPage(group.id);
 
@@ -191,8 +201,8 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
     const second = await seedContact("Counted Member Second");
     const candidate = await seedContact("Find Candidate Separately");
     await database.db.insert(contactGroups).values([
-      { contactId: first.id, groupId: group.id },
-      { contactId: second.id, groupId: group.id },
+      { ownerId, contactId: first.id, groupId: group.id },
+      { ownerId, contactId: second.id, groupId: group.id },
     ]);
 
     const html = await renderGroupPage(group.id, candidate.name);
@@ -207,11 +217,23 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
     const [member, candidate] = await database.db
       .insert(contacts)
       .values([
-        { name: "Member With Details", phone: "+70000001001", email: "member@example.com" },
-        { name: "Candidate With Details", phone: "+70000001002", email: "candidate@example.com" },
+        {
+          ownerId,
+          name: "Member With Details",
+          phone: "+70000001001",
+          email: "member@example.com",
+        },
+        {
+          ownerId,
+          name: "Candidate With Details",
+          phone: "+70000001002",
+          email: "candidate@example.com",
+        },
       ])
       .returning();
-    await database.db.insert(contactGroups).values({ contactId: member.id, groupId: group.id });
+    await database.db
+      .insert(contactGroups)
+      .values({ ownerId, contactId: member.id, groupId: group.id });
 
     const html = await renderGroupPage(group.id, candidate.name);
     expect(html).toContain(member.name);
@@ -241,7 +263,9 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
   it("renames a group at the same URL and keeps its members", async () => {
     const group = await seedGroup("Old name");
     const member = await seedContact("Renamed Group Member");
-    await database.db.insert(contactGroups).values({ contactId: member.id, groupId: group.id });
+    await database.db
+      .insert(contactGroups)
+      .values({ ownerId, contactId: member.id, groupId: group.id });
 
     const state = await renameGroupAction(
       group.id,
@@ -250,8 +274,8 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
     );
 
     expect(state.error).toBeUndefined();
-    expect(await getGroup(group.id)).toEqual({ id: group.id, name: "New name" });
-    expect(await listGroups()).toContainEqual({ id: group.id, name: "New name" });
+    expect(await getGroup(ownerId, group.id)).toEqual({ id: group.id, name: "New name" });
+    expect(await listGroups(ownerId)).toContainEqual({ id: group.id, name: "New name" });
     const html = await renderGroupPage(group.id);
     expect(html).toContain("New name");
     expect(html).toContain(`href="/contacts/${member.id}"`);
@@ -263,8 +287,8 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
     const member = await seedContact("Deletion Test Member");
     await database.db.insert(notes).values({ contactId: member.id, body: "An existing note" });
     await database.db.insert(contactGroups).values([
-      { contactId: member.id, groupId: group.id },
-      { contactId: member.id, groupId: other.id },
+      { ownerId, contactId: member.id, groupId: group.id },
+      { ownerId, contactId: member.id, groupId: other.id },
     ]);
     const confirmation = new FormData();
     confirmation.set("confirmation", "delete");
@@ -273,9 +297,9 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
       digest: expect.stringContaining(";/groups;"),
     });
 
-    expect(await getGroup(group.id)).toBeUndefined();
-    expect(await getContact(member.id)).toEqual(member);
-    expect(await getNotes(member.id)).toEqual([
+    expect(await getGroup(ownerId, group.id)).toBeUndefined();
+    expect(await getContact(ownerId, member.id)).toEqual(member);
+    expect(await getNotes(ownerId, member.id)).toEqual([
       expect.objectContaining({ body: "An existing note" }),
     ]);
     expect(await renderGroupPage(other.id)).toContain(member.name);
@@ -284,11 +308,13 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
   it("keeps the group and its members without confirmation", async () => {
     const group = await seedGroup("Cancelled deletion");
     const member = await seedContact("Cancellation Test Member");
-    await database.db.insert(contactGroups).values({ contactId: member.id, groupId: group.id });
+    await database.db
+      .insert(contactGroups)
+      .values({ ownerId, contactId: member.id, groupId: group.id });
 
     await deleteGroupAction(group.id, {}, new FormData());
 
-    expect(await getGroup(group.id)).toEqual(group);
+    expect(await getGroup(ownerId, group.id)).toEqual(group);
     expect(await renderGroupPage(group.id)).toContain(member.name);
   });
 
@@ -335,9 +361,9 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
     const staying = await seedContact("Staying Member");
     await database.db.insert(notes).values({ contactId: member.id, body: "Keep this note" });
     await database.db.insert(contactGroups).values([
-      { contactId: member.id, groupId: group.id },
-      { contactId: member.id, groupId: other.id },
-      { contactId: staying.id, groupId: group.id },
+      { ownerId, contactId: member.id, groupId: group.id },
+      { ownerId, contactId: member.id, groupId: other.id },
+      { ownerId, contactId: staying.id, groupId: group.id },
     ]);
 
     expect(await removeGroupMemberAction(group.id, member.id)).toEqual({});
@@ -346,8 +372,8 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
     expect(html).not.toContain(member.name);
     expect(html).toContain(staying.name);
     expect(await renderGroupPage(other.id)).toContain(member.name);
-    expect(await getContact(member.id)).toEqual(member);
-    expect(await getNotes(member.id)).toEqual([
+    expect(await getContact(ownerId, member.id)).toEqual(member);
+    expect(await getNotes(ownerId, member.id)).toEqual([
       expect.objectContaining({ body: "Keep this note" }),
     ]);
   });
@@ -355,7 +381,9 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
   it("shows a recoverable empty state after removing the last member", async () => {
     const group = await seedGroup("Last member");
     const member = await seedContact("Last Group Member");
-    await database.db.insert(contactGroups).values({ contactId: member.id, groupId: group.id });
+    await database.db
+      .insert(contactGroups)
+      .values({ ownerId, contactId: member.id, groupId: group.id });
 
     expect(await removeGroupMemberAction(group.id, member.id)).toEqual({});
 
@@ -375,8 +403,8 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
       createContactAction(emptyContactState, contactForm(name, [family.id, tennis.id])),
     ).rejects.toMatchObject({ digest: expect.stringContaining(";/?added=") });
 
-    const [contact] = await findContactsByName(name);
-    expect(await getContactGroups(contact.id)).toEqual([family, tennis]);
+    const [contact] = await findContactsByName(ownerId, name);
+    expect(await getContactGroups(ownerId, contact.id)).toEqual([family, tennis]);
     expect(await renderGroupPage(family.id)).toContain(name);
     expect(await renderGroupPage(tennis.id)).toContain(name);
   });
@@ -386,29 +414,31 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
     const second = await seedGroup("Keep second");
     const member = await seedContact("Deselect One");
     await database.db.insert(contactGroups).values([
-      { contactId: member.id, groupId: first.id },
-      { contactId: member.id, groupId: second.id },
+      { ownerId, contactId: member.id, groupId: first.id },
+      { ownerId, contactId: member.id, groupId: second.id },
     ]);
 
     await expect(
       updateContactAction(member.id, emptyContactState, contactForm(member.name, [second.id])),
     ).rejects.toMatchObject({ digest: expect.stringContaining(`;/contacts/${member.id};`) });
 
-    expect(await getContactGroups(member.id)).toEqual([second]);
+    expect(await getContactGroups(ownerId, member.id)).toEqual([second]);
     expect(await renderGroupPage(first.id)).not.toContain(member.name);
   });
 
   it("keeps a contact in the common list after deselecting the last group", async () => {
     const group = await seedGroup("Deselect last");
     const member = await seedContact("Deselect Last Contact");
-    await database.db.insert(contactGroups).values({ contactId: member.id, groupId: group.id });
+    await database.db
+      .insert(contactGroups)
+      .values({ ownerId, contactId: member.id, groupId: group.id });
 
     await expect(
       updateContactAction(member.id, emptyContactState, contactForm(member.name, [])),
     ).rejects.toMatchObject({ digest: expect.stringContaining(`;/contacts/${member.id};`) });
 
-    expect(await getContactGroups(member.id)).toEqual([]);
-    expect(await findContactsByName(member.name)).toContainEqual(
+    expect(await getContactGroups(ownerId, member.id)).toEqual([]);
+    expect(await findContactsByName(ownerId, member.name)).toContainEqual(
       expect.objectContaining({ id: member.id }),
     );
   });
@@ -422,17 +452,19 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
       digest: expect.stringContaining(";/?added="),
     });
 
-    const [contact] = await findContactsByName(name);
-    const [group] = await getContactGroups(contact.id);
+    const [contact] = await findContactsByName(ownerId, name);
+    const [group] = await getContactGroups(ownerId, contact.id);
     expect(group).toEqual({ id: expect.any(Number), name: "New Analysts Group" });
-    expect(await listGroups()).toContainEqual(group);
+    expect(await listGroups(ownerId)).toContainEqual(group);
     expect(await renderGroupPage(group.id)).toContain(name);
   });
 
   it("creates a group while editing a contact and retains the selected group", async () => {
     const existing = await seedGroup("Already Selected Group");
     const member = await seedContact("Editing Contact With New Group");
-    await database.db.insert(contactGroups).values({ contactId: member.id, groupId: existing.id });
+    await database.db
+      .insert(contactGroups)
+      .values({ ownerId, contactId: member.id, groupId: existing.id });
     const form = contactForm(member.name, [existing.id]);
     form.append("newGroupNames", "Another New Group");
 
@@ -440,15 +472,15 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
       digest: expect.stringContaining(`;/contacts/${member.id};`),
     });
 
-    const saved = await getContactGroups(member.id);
+    const saved = await getContactGroups(ownerId, member.id);
     expect(saved).toEqual([existing, { id: expect.any(Number), name: "Another New Group" }]);
-    expect(await listGroups()).toContainEqual(saved[1]);
+    expect(await listGroups(ownerId)).toContainEqual(saved[1]);
     expect(await renderGroupPage(saved[1].id)).toContain(member.name);
   });
 
   it("can leave the contact form with a draft without submitting any records", async () => {
     const member = await seedContact("Unchanged Contact");
-    const groupList = await listGroups();
+    const groupList = await listGroups(ownerId);
     const html = await renderView(
       createElement(ContactForm, {
         groups: groupList,
@@ -466,8 +498,8 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
     expect(html).toContain('name="newGroupName"');
     expect(html).toContain('value="Discarded draft"');
     expect(html).toMatch(new RegExp(`href="/contacts/${member.id}"[^>]*>Отмена</a>`));
-    expect(await listGroups()).toEqual(groupList);
-    expect(await getContact(member.id)).toEqual(member);
+    expect(await listGroups(ownerId)).toEqual(groupList);
+    expect(await getContact(ownerId, member.id)).toEqual(member);
   });
 
   it("shows saved groups as pressed buttons and keeps the new name input hidden initially", async () => {
@@ -499,7 +531,7 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
 
   it("returns a group draft when contact validation fails and writes no group", async () => {
     const existing = await seedGroup("Keep Form Selection");
-    const before = await listGroups();
+    const before = await listGroups(ownerId);
     const form = contactForm(" ", [existing.id]);
     form.append("newGroupNames", "Queued Group");
     form.set("newGroupName", "Typed Group");
@@ -512,12 +544,12 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
       newGroupNames: ["Queued Group"],
       newGroupName: "Typed Group",
     });
-    expect(await listGroups()).toEqual(before);
+    expect(await listGroups(ownerId)).toEqual(before);
   });
 
   it("rolls back contact changes when a selected group has been removed", async () => {
     const member = await seedContact("Original Contact Name");
-    const before = await listGroups();
+    const before = await listGroups(ownerId);
     const form = contactForm("Edited Contact Name", [2_147_483_647]);
     form.set("newGroupName", "Uncommitted draft");
 
@@ -525,8 +557,8 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
 
     expect(state.fieldErrors.groupIds).toBeDefined();
     expect(state.values.newGroupName).toBe("Uncommitted draft");
-    expect(await getContact(member.id)).toEqual(member);
-    expect(await listGroups()).toEqual(before);
+    expect(await getContact(ownerId, member.id)).toEqual(member);
+    expect(await listGroups(ownerId)).toEqual(before);
   });
 
   it("filters the contact list and count by group and restores all contacts when cleared", async () => {
@@ -537,9 +569,9 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
     const boris = await seedContact("Group Filter Boris");
     const vera = await seedContact("Group Filter Vera");
     await database.db.insert(contactGroups).values([
-      { contactId: anna.id, groupId: tennis.id },
-      { contactId: anna.id, groupId: friends.id },
-      { contactId: boris.id, groupId: friends.id },
+      { ownerId, contactId: anna.id, groupId: tennis.id },
+      { ownerId, contactId: anna.id, groupId: friends.id },
+      { ownerId, contactId: boris.id, groupId: friends.id },
     ]);
 
     const filtered = await renderView(
@@ -572,6 +604,7 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
   it("places a closed group filter and group directory above reminders", async () => {
     await seedGroup("Search Panel Tennis");
     await database.db.insert(contacts).values({
+      ownerId,
       name: "Panel Reminder Contact",
       keepInTouchFrequency: "week",
       keepInTouchSetAt: new Date("2020-01-03T12:00:00Z"),
@@ -599,13 +632,13 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
     const [selected, outside] = await database.db
       .insert(contacts)
       .values([
-        { name: "Selected Reminder Contact", ...dueFields },
-        { name: "Outside Reminder Contact", ...dueFields },
+        { ownerId, name: "Selected Reminder Contact", ...dueFields },
+        { ownerId, name: "Outside Reminder Contact", ...dueFields },
       ])
       .returning();
     await database.db.insert(contactGroups).values([
-      { contactId: selected.id, groupId: first.id },
-      { contactId: outside.id, groupId: second.id },
+      { ownerId, contactId: selected.id, groupId: first.id },
+      { ownerId, contactId: outside.id, groupId: second.id },
     ]);
 
     const filtered = await renderReminders(first.id);
@@ -625,13 +658,16 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
     const [outside] = await database.db
       .insert(contacts)
       .values({
+        ownerId,
         name: "Other Group Due Contact",
         keepInTouchFrequency: "week",
         keepInTouchSetAt: new Date("2020-01-03T12:00:00Z"),
       })
       .returning();
     const member = await seedContact("No Reminder Member");
-    await database.db.insert(contactGroups).values({ contactId: member.id, groupId: group.id });
+    await database.db
+      .insert(contactGroups)
+      .values({ ownerId, contactId: member.id, groupId: group.id });
 
     expect(await renderReminders()).toContain(outside.name);
     expect(await renderReminders(group.id)).toBe("");
@@ -655,9 +691,11 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
     const group = await seedGroup("Card Group Tag");
     const [member] = await database.db
       .insert(contacts)
-      .values({ name: "Card Group Member", howWeMet: "Met at tennis" })
+      .values({ ownerId, name: "Card Group Member", howWeMet: "Met at tennis" })
       .returning();
-    await database.db.insert(contactGroups).values({ contactId: member.id, groupId: group.id });
+    await database.db
+      .insert(contactGroups)
+      .values({ ownerId, contactId: member.id, groupId: group.id });
     const html = await renderView(
       createElement(ContactPage, {
         params: Promise.resolve({ id: String(member.id) }),
@@ -677,7 +715,9 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
     const empty = await seedGroup("Search Inside Empty");
     const inGroup = await seedContact("Two Matches Inside");
     const outside = await seedContact("Two Matches Outside");
-    await database.db.insert(contactGroups).values({ contactId: inGroup.id, groupId: tennis.id });
+    await database.db
+      .insert(contactGroups)
+      .values({ ownerId, contactId: inGroup.id, groupId: tennis.id });
 
     const renderList = (searchParams: Record<string, string>) =>
       renderView(createElement(ContactList, { searchParams: Promise.resolve(searchParams) }));

@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   check,
+  foreignKey,
   index,
   integer,
   pgEnum,
@@ -8,9 +9,13 @@ import {
   primaryKey,
   text,
   timestamp,
+  unique,
 } from "drizzle-orm/pg-core";
 
+import { user } from "./auth-schema";
 import { KEEP_IN_TOUCH_FREQUENCIES } from "./keep-in-touch";
+
+export { account, magicLinkRequests, session, user, verification } from "./auth-schema";
 
 export const keepInTouchFrequency = pgEnum("keep_in_touch_frequency", KEEP_IN_TOUCH_FREQUENCIES);
 
@@ -18,6 +23,9 @@ export const contacts = pgTable(
   "contacts",
   {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => user.id),
     name: text().notNull(),
     // Who this person is: occupation, role in my life
     about: text(),
@@ -34,6 +42,7 @@ export const contacts = pgTable(
     lastContactedAt: timestamp("last_contacted_at", { withTimezone: true }),
   },
   (table) => [
+    unique("contacts_owner_id_id_unique").on(table.ownerId, table.id),
     check(
       "contacts_keep_in_touch_set_at_check",
       sql`(${table.keepInTouchFrequency} is null) = (${table.keepInTouchSetAt} is null)`,
@@ -55,29 +64,43 @@ export const notes = pgTable(
   (table) => [index("notes_contact_id_idx").on(table.contactId)],
 );
 
-export const groups = pgTable("groups", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  name: text().notNull(),
-});
+export const groups = pgTable(
+  "groups",
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => user.id),
+    name: text().notNull(),
+  },
+  (table) => [unique("groups_owner_id_id_unique").on(table.ownerId, table.id)],
+);
 
 export const contactGroups = pgTable(
   "contact_groups",
   {
-    contactId: integer("contact_id")
-      .notNull()
-      .references(() => contacts.id, { onDelete: "cascade" }),
-    groupId: integer("group_id")
-      .notNull()
-      .references(() => groups.id, { onDelete: "cascade" }),
+    contactId: integer("contact_id").notNull(),
+    groupId: integer("group_id").notNull(),
+    ownerId: text("owner_id").notNull(),
   },
   (table) => [
     primaryKey({ columns: [table.contactId, table.groupId] }),
     index("contact_groups_group_id_idx").on(table.groupId),
+    foreignKey({
+      name: "contact_groups_owner_contact_fk",
+      columns: [table.ownerId, table.contactId],
+      foreignColumns: [contacts.ownerId, contacts.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      name: "contact_groups_owner_group_fk",
+      columns: [table.ownerId, table.groupId],
+      foreignColumns: [groups.ownerId, groups.id],
+    }).onDelete("cascade"),
   ],
 );
 
 export type Contact = typeof contacts.$inferSelect;
 export type NewContact = typeof contacts.$inferInsert;
-export type Group = typeof groups.$inferSelect;
+export type Group = Pick<typeof groups.$inferSelect, "id" | "name">;
 export type Note = typeof notes.$inferSelect;
 export type NewNote = typeof notes.$inferInsert;

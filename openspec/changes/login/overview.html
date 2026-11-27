@@ -1,0 +1,1614 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Вход по ссылке — Личная CRM</title>
+    <style>
+      @font-face {
+        font-family: "Inter Tight";
+        src: url("../../../src/assets/fonts/inter-tight-500.ttf") format("truetype");
+        font-weight: 500;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: "Inter Tight";
+        src: url("../../../src/assets/fonts/inter-tight-600.ttf") format("truetype");
+        font-weight: 600;
+        font-display: swap;
+      }
+
+      :root {
+        --color-white: #fff;
+        --color-paper: #f1efeb;
+        --color-ink: #0d0c14;
+        --color-ink-2: #4a4752;
+        --color-ink-3: #6b6874;
+        --color-line: #e2dfd9;
+        --color-line-2: #eeece8;
+        --color-night: #08081a;
+        --color-indigo: #4b47f2;
+        --color-blue: #3b3ff0;
+        --color-violet: #8a4cf0;
+        --color-coral: #f0564a;
+        --color-amber: #ff8a3d;
+        --color-accent-num: #f07a4a;
+        --color-danger: #c42f24;
+        --font-inter-tight: "Inter Tight";
+        --font-jetbrains-mono: "JetBrains Mono";
+        --font-sans: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
+        --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+        --text-title: 30px;
+        --text-title--line-height: 1.05;
+        --text-title--letter-spacing: -0.04em;
+        --text-subtitle: 20px;
+        --text-subtitle--line-height: 1.2;
+        --text-subtitle--letter-spacing: -0.025em;
+        --text-logo: 17px;
+        --text-logo--letter-spacing: -0.02em;
+        --radius: 0.75rem;
+        --radius-card: 14px;
+        --radius-logo: 5px;
+        --shadow-card: 0 10px 24px -18px rgb(30 20 80 / 0.5);
+        --spacing: 0.25rem;
+        --container-3xl: 48rem;
+        --container-6xl: 72rem;
+        --ray-step: 12deg;
+        --glow-sunrise: radial-gradient(
+          closest-side,
+          var(--color-amber) 0%,
+          var(--color-coral) 22%,
+          var(--color-violet) 52%,
+          var(--color-blue) 72%,
+          rgb(40 40 200 / 0) 100%
+        );
+        --rays: repeating-conic-gradient(
+          from 270deg at 50% 100%,
+          rgb(255 255 255 / 0.14) 0deg 0.25deg,
+          transparent 0.25deg var(--ray-step)
+        );
+      }
+
+      @media (min-width: 768px) {
+        :root {
+          --text-title: 40px;
+          --text-subtitle: 22px;
+          --text-logo: 20px;
+          --radius-card: 16px;
+          --radius-logo: 6px;
+          --ray-step: 6deg;
+        }
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--color-paper);
+        color: var(--color-ink);
+        font: 500 1rem/1.5 var(--font-sans);
+      }
+      h1,
+      h2,
+      h3,
+      h4,
+      p,
+      figure {
+        margin: 0;
+      }
+      h1,
+      h2 {
+        font-size: var(--text-title);
+        line-height: var(--text-title--line-height);
+        letter-spacing: var(--text-title--letter-spacing);
+      }
+      h3 {
+        font-size: var(--text-subtitle);
+        line-height: var(--text-subtitle--line-height);
+        letter-spacing: var(--text-subtitle--letter-spacing);
+      }
+      h4 {
+        font-size: 1rem;
+      }
+      strong,
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-weight: 600;
+      }
+      p,
+      li {
+        overflow-wrap: anywhere;
+      }
+      a {
+        color: var(--color-indigo);
+        text-underline-offset: calc(var(--spacing) * 0.75);
+      }
+      a:focus-visible,
+      summary:focus-visible,
+      input:focus-visible {
+        outline: 2px solid var(--color-violet);
+        outline-offset: var(--spacing);
+      }
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.84em;
+        overflow-wrap: anywhere;
+      }
+      .wrap {
+        width: min(100%, var(--container-6xl));
+        margin-inline: auto;
+        padding-inline: calc(var(--spacing) * 6);
+      }
+      .hero {
+        isolation: isolate;
+        position: relative;
+        overflow: hidden;
+        background: var(--color-night);
+        color: var(--color-white);
+      }
+      .hero::before,
+      .hero::after {
+        content: "";
+        position: absolute;
+        z-index: -1;
+        pointer-events: none;
+      }
+      .hero::before {
+        background: var(--glow-sunrise);
+        width: min(100%, var(--container-3xl));
+        height: 18rem;
+        right: -12%;
+        bottom: -12rem;
+      }
+      .hero::after {
+        inset: 0 0 0 30%;
+        background: var(--rays);
+      }
+      .hero .wrap {
+        display: grid;
+        gap: calc(var(--spacing) * 10);
+        padding-block: calc(var(--spacing) * 7) calc(var(--spacing) * 10);
+      }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: calc(var(--spacing) * 2);
+        font-size: var(--text-logo);
+        letter-spacing: var(--text-logo--letter-spacing);
+        font-weight: 600;
+      }
+      .brand::before {
+        content: "";
+        flex: 0 0 auto;
+        width: 1em;
+        height: 1em;
+        background: linear-gradient(var(--color-indigo), var(--color-accent-num));
+        border-radius: var(--radius-logo);
+      }
+      .hero-title {
+        font-size: calc(var(--text-title) * 1.45);
+        max-width: 20ch;
+      }
+      .hero-title + p {
+        margin-top: calc(var(--spacing) * 3);
+        max-width: 58ch;
+      }
+      nav {
+        background: var(--color-white);
+        border-bottom: 1px solid var(--color-line);
+      }
+      nav .wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: calc(var(--spacing) * 2) calc(var(--spacing) * 6);
+        padding-block: calc(var(--spacing) * 3);
+      }
+      nav a {
+        font-weight: 600;
+      }
+      main {
+        padding-block: calc(var(--spacing) * 10) calc(var(--spacing) * 18);
+      }
+      main > section + section {
+        margin-top: calc(var(--spacing) * 15);
+      }
+      section > h2 {
+        margin-bottom: calc(var(--spacing) * 4);
+      }
+      section > h3,
+      .subheading {
+        margin-block: calc(var(--spacing) * 6) calc(var(--spacing) * 3);
+      }
+      .intro {
+        max-width: var(--container-3xl);
+        margin-bottom: calc(var(--spacing) * 4);
+      }
+      .muted,
+      .caption {
+        color: var(--color-ink-2);
+      }
+      .number {
+        color: var(--color-indigo);
+        font-weight: 600;
+      }
+      .card,
+      .rule,
+      .screen,
+      .diagram,
+      details {
+        background: var(--color-white);
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius-card);
+      }
+      .card,
+      .rule,
+      .diagram {
+        padding: calc(var(--spacing) * 4);
+      }
+      .card > p + p {
+        margin-top: calc(var(--spacing) * 2);
+      }
+      .status,
+      .pair,
+      .screens {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: calc(var(--spacing) * 4);
+      }
+      .status {
+        width: min(100%, var(--container-3xl));
+      }
+      .status .card {
+        box-shadow: var(--shadow-card);
+      }
+      .screen {
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        min-width: 0;
+        overflow: hidden;
+        box-shadow: var(--shadow-card);
+      }
+      .screen-wide {
+        grid-column: 1 / -1;
+      }
+      .screen > h3 {
+        padding: calc(var(--spacing) * 4);
+      }
+      .screen-body {
+        padding: calc(var(--spacing) * 4);
+        background: var(--color-paper);
+        border-block: 1px solid var(--color-line);
+      }
+      .caption {
+        padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4);
+        font-size: 0.9375rem;
+      }
+      .mock {
+        display: grid;
+        gap: calc(var(--spacing) * 2);
+        padding: calc(var(--spacing) * 3);
+        background: var(--color-white);
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius);
+        min-width: 0;
+      }
+      .mock + .mock {
+        margin-top: calc(var(--spacing) * 3);
+      }
+      .pair > .mock {
+        margin-top: 0;
+      }
+      .mock-title {
+        font-size: var(--text-subtitle);
+        line-height: var(--text-subtitle--line-height);
+      }
+      .new {
+        border: 1px dashed var(--color-indigo);
+        border-radius: var(--radius);
+      }
+      .screen-bar {
+        background: var(--color-night);
+        color: var(--color-white);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: calc(var(--spacing) * 2);
+        padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+        border-radius: var(--radius);
+        margin-bottom: calc(var(--spacing) * 3);
+      }
+      .screen-bar .brand {
+        font-size: 1rem;
+      }
+      .identity {
+        border-color: var(--color-violet);
+        display: inline-flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: calc(var(--spacing) * 2);
+        padding: var(--spacing) calc(var(--spacing) * 2);
+        font-size: 0.875rem;
+      }
+      .field,
+      .mock-button {
+        display: inline-block;
+        padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2.5);
+        border-radius: var(--radius);
+      }
+      .field {
+        color: var(--color-ink-2);
+        border: 1px solid var(--color-line);
+        background: var(--color-white);
+      }
+      .mock-button {
+        width: fit-content;
+        color: var(--color-ink);
+        border: 1px solid var(--color-line);
+        font-weight: 600;
+      }
+      .primary {
+        background: var(--color-indigo);
+        color: var(--color-white);
+        border-color: var(--color-indigo);
+      }
+      .identity .mock-button {
+        color: var(--color-white);
+        border-color: var(--color-violet);
+        font-size: 0.8125rem;
+      }
+      .mock-line {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: calc(var(--spacing) * 2);
+      }
+      .spread {
+        justify-content: space-between;
+      }
+      .mock-row {
+        display: grid;
+        gap: var(--spacing);
+        padding: calc(var(--spacing) * 2) 0;
+        border-top: 1px solid var(--color-line-2);
+      }
+      .mock-note {
+        padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+      }
+      .mock-note + .mock-note {
+        margin-top: calc(var(--spacing) * 2);
+      }
+      .mock .muted,
+      .mock-note .muted,
+      .mock-row .muted {
+        font-size: 0.875rem;
+      }
+      .error {
+        color: var(--color-danger);
+      }
+      .tag {
+        display: inline-block;
+        padding: var(--spacing) calc(var(--spacing) * 2);
+        border-radius: var(--radius);
+        background: var(--color-line-2);
+        color: var(--color-ink);
+        font-size: 0.875rem;
+      }
+      .rules,
+      .stack {
+        display: grid;
+        gap: calc(var(--spacing) * 3);
+      }
+      .rule {
+        display: grid;
+        gap: var(--spacing);
+      }
+      .example {
+        padding-left: calc(var(--spacing) * 3);
+        border-left: 2px solid var(--color-indigo);
+        margin-top: var(--spacing);
+        color: var(--color-ink-2);
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: calc(var(--spacing) * 3);
+        margin-bottom: calc(var(--spacing) * 3);
+      }
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: calc(var(--spacing) * 2);
+      }
+      .legend span::before {
+        content: "";
+        width: 1.25rem;
+        height: 1rem;
+        border: 1px solid var(--color-ink-3);
+        border-radius: var(--radius-logo);
+        background: var(--color-white);
+      }
+      .legend .legend-new::before {
+        border: 1px dashed var(--color-indigo);
+      }
+      .schema {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: calc(var(--spacing) * 2);
+        align-items: stretch;
+        margin-top: calc(var(--spacing) * 3);
+      }
+      .schema .wide {
+        grid-column: 1 / -1;
+      }
+      .entity {
+        display: flex;
+        flex-direction: column;
+        gap: calc(var(--spacing) * 2);
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius);
+        padding: calc(var(--spacing) * 3);
+      }
+      .entity.new {
+        border-style: dashed;
+        border-color: var(--color-indigo);
+      }
+      .entity > header {
+        display: grid;
+        gap: var(--spacing);
+      }
+      .entity > header code {
+        width: fit-content;
+        color: var(--color-ink-2);
+      }
+      .entity p {
+        font-size: 0.875rem;
+      }
+      .entity .added {
+        display: block;
+        border: 1px dashed var(--color-indigo);
+        border-radius: var(--radius-logo);
+        padding: var(--spacing) calc(var(--spacing) * 2);
+      }
+      .relation {
+        font-size: 0.875rem;
+        color: var(--color-ink-2);
+        text-align: center;
+      }
+      .relation.new-link {
+        color: var(--color-indigo);
+      }
+      .lookup {
+        display: grid;
+        gap: calc(var(--spacing) * 2);
+      }
+      .lookup > h4 {
+        margin-bottom: var(--spacing);
+      }
+      .lookup > p {
+        border-top: 1px solid var(--color-line-2);
+        padding-top: calc(var(--spacing) * 2);
+      }
+      .check-progress {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+        margin-block: calc(var(--spacing) * 4);
+      }
+      progress {
+        accent-color: var(--color-indigo);
+      }
+      details {
+        overflow: clip;
+      }
+      summary {
+        cursor: pointer;
+        padding: calc(var(--spacing) * 4);
+        font-weight: 600;
+      }
+      summary::marker {
+        color: var(--color-indigo);
+      }
+      .checks {
+        display: grid;
+        gap: calc(var(--spacing) * 2);
+        padding: 0 calc(var(--spacing) * 3) calc(var(--spacing) * 3);
+      }
+      .check {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: calc(var(--spacing) * 3);
+        padding: calc(var(--spacing) * 3);
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius);
+        cursor: pointer;
+      }
+      .check:has(input:checked) {
+        border-color: var(--color-indigo);
+      }
+      .check input {
+        width: 1.125rem;
+        height: 1.125rem;
+        margin: var(--spacing) 0 0;
+        accent-color: var(--color-indigo);
+      }
+      .check .check-body {
+        display: grid;
+        gap: var(--spacing);
+      }
+      .check .expected {
+        color: var(--color-ink-2);
+      }
+      .expected::before {
+        content: "→ ";
+        color: var(--color-indigo);
+        font-weight: 600;
+      }
+
+      @media (max-width: 720px) {
+        .wrap {
+          padding-inline: calc(var(--spacing) * 4);
+        }
+        .hero .wrap {
+          gap: calc(var(--spacing) * 6);
+        }
+        .status,
+        .pair,
+        .screens {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        main > section + section {
+          margin-top: calc(var(--spacing) * 11);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="hero">
+      <div class="wrap">
+        <span class="brand">Личная CRM</span>
+        <div>
+          <h1 class="hero-title">Вход по ссылке из письма</h1>
+          <p>Каждый входит по своей почте и видит свои контакты, заметки и группы.</p>
+        </div>
+      </div>
+    </header>
+    <nav aria-label="Разделы обзора">
+      <div class="wrap">
+        <a href="#screens">Экраны</a>
+        <a href="#rules">Правила</a>
+        <a href="#data">Данные</a>
+        <a href="#checklist">Проверка</a>
+        <a href="#decisions">Решения</a>
+        <a href="#questions">Открытый вопрос</a>
+      </div>
+    </nav>
+    <main class="wrap">
+      <section aria-labelledby="summary-title">
+        <h2 id="summary-title">Коротко</h2>
+        <p class="intro">
+          Первый переход по письму создаёт учётную запись. У нового пользователя список пуст, а уже
+          сохранённые контакты, заметки и группы появятся у владельца CRM.
+        </p>
+        <div class="status">
+          <div class="card">
+            <strong>Спроектирована</strong>
+            <p class="muted">Выполнено <span class="number">0 из 20</span> задач реализации.</p>
+          </div>
+          <div class="card">
+            <strong>Автотесты</strong>
+            <p class="muted">
+              Проверки входа и двух пользователей запланированы. Сквозной тест контактов и заметок
+              уже есть.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="screens" aria-labelledby="screens-title">
+        <h2 id="screens-title">Что появится на экранах</h2>
+        <p class="intro">
+          Пунктиром отмечены новые элементы и области, где станут видны только свои данные. Это
+          наброски с примерами.
+        </p>
+        <div class="screens">
+          <article class="screen">
+            <h3>Страница входа</h3>
+            <div class="screen-body">
+              <div class="screen-bar"><span class="brand">Личная CRM</span></div>
+              <div class="mock new">
+                <strong class="mock-title">Вход</strong><span>Почта</span
+                ><span class="field">anna@example.test</span
+                ><span class="mock-button primary">Получить ссылку</span>
+              </div>
+            </div>
+            <p class="caption">
+              Открывается при заходе без входа, в том числе по прямой ссылке на карточку или группу.
+            </p>
+          </article>
+          <article class="screen">
+            <h3>Ответ после запроса</h3>
+            <div class="screen-body">
+              <div class="mock-note new">
+                <strong>Ссылка для входа отправлена на anna@example.test</strong>
+              </div>
+              <div class="mock-note new">
+                <span class="field">anna@</span>
+                <p class="error">Проверь адрес почты</p>
+              </div>
+              <div class="mock-note new">
+                <p class="error">Слишком часто, попробуй через несколько минут</p>
+              </div>
+            </div>
+            <p class="caption">
+              Три разных состояния формы. Подтверждение выглядит одинаково для нового и знакомого
+              адреса.
+            </p>
+          </article>
+          <article class="screen">
+            <h3>Письмо для входа</h3>
+            <div class="screen-body">
+              <div class="mock new">
+                <p class="muted">Личная CRM &lt;noreply@mail.crm.kropcrm.ru&gt;</p>
+                <strong class="mock-title">Вход в Личную CRM</strong
+                ><span class="mock-button primary">Войти</span>
+                <p>Ссылка работает 15 минут.</p>
+                <p class="muted">Если вы не запрашивали вход - просто проигнорируйте письмо</p>
+              </div>
+            </div>
+            <p class="caption">
+              На компьютере и в тестах письмо можно открыть в Mailpit, тестовом почтовом ящике. На
+              сервере оно придёт в ваш почтовый ящик.
+            </p>
+          </article>
+          <article class="screen">
+            <h3>Устаревшая ссылка</h3>
+            <div class="screen-body">
+              <div class="screen-bar"><span class="brand">Личная CRM</span></div>
+              <div class="mock new">
+                <strong class="mock-title">Ссылка устарела, запроси новую</strong
+                ><span class="mock-button primary">На страницу входа</span>
+              </div>
+            </div>
+            <p class="caption">
+              Один экран для просроченной, заменённой и уже использованной ссылки. Кнопка вернёт к
+              форме.
+            </p>
+          </article>
+          <article class="screen">
+            <h3>Главная с контактами</h3>
+            <div class="screen-body">
+              <div class="screen-bar">
+                <span class="brand">Личная CRM</span
+                ><span class="identity new"
+                  >anna@example.test <span class="mock-button">Выйти</span></span
+                >
+              </div>
+              <div class="mock new">
+                <div class="mock-line spread">
+                  <strong class="mock-title">Контакты</strong
+                  ><span class="mock-button primary">Добавить контакт</span>
+                </div>
+                <span class="field">Найти по имени</span>
+                <div class="mock-line">
+                  <span class="tag">Друзья</span><span class="mock-button">Список групп</span>
+                </div>
+                <div class="mock-row">
+                  <strong>Пора связаться · 1</strong><span>Ирина Волкова</span
+                  ><span class="muted">Раз в месяц · просрочено на 12 дней</span>
+                </div>
+                <div class="mock-row">
+                  <strong>2 контакта</strong><span>Ирина Волкова</span><span>Дмитрий Соколов</span>
+                </div>
+              </div>
+            </div>
+            <p class="caption">
+              В шапке видны почта и выход. Поиск, счётчики, фильтр и напоминания работают со своими
+              данными.
+            </p>
+          </article>
+          <article class="screen">
+            <h3>Главная после первого входа</h3>
+            <div class="screen-body">
+              <div class="screen-bar">
+                <span class="brand">Личная CRM</span
+                ><span class="identity new"
+                  >boris@example.test <span class="mock-button">Выйти</span></span
+                >
+              </div>
+              <div class="mock">
+                <strong class="mock-title">Контакты</strong>
+                <div class="mock-note new"><strong>Добавь первый контакт</strong></div>
+                <span class="mock-button primary">Добавить контакт</span>
+              </div>
+            </div>
+            <p class="caption">
+              У Бориса свой список. После первого входа добавленные Анной контакты в нём не
+              появятся.
+            </p>
+          </article>
+          <article class="screen">
+            <h3>Карточка контакта</h3>
+            <div class="screen-body">
+              <div class="mock new">
+                <p class="muted">Все контакты</p>
+                <strong class="mock-title">Ирина Волкова</strong>
+                <div class="mock-line">
+                  <span class="tag">Друзья</span><span class="mock-button">Изменить</span>
+                </div>
+                <div class="mock-row">
+                  <strong>Как часто общаться</strong><span>Месяц</span
+                  ><span class="mock-button">Связался</span>
+                </div>
+                <div class="mock-row">
+                  <strong>Заметки</strong><span>Договорились встретиться в субботу.</span>
+                </div>
+              </div>
+            </div>
+            <p class="caption">
+              Сама карточка, заметки и действия с напоминаниями доступны владельцу контакта.
+            </p>
+          </article>
+          <article class="screen">
+            <h3>Новый контакт и редактирование</h3>
+            <div class="screen-body">
+              <div class="mock">
+                <strong class="mock-title">Новый контакт</strong><span class="field">Имя</span>
+                <div class="mock-note new">
+                  Группы <span class="tag">Друзья</span> <span class="tag">Теннис</span>
+                </div>
+                <span class="mock-button primary">Сохранить контакт</span>
+              </div>
+              <div class="mock new">
+                <strong class="mock-title">Изменить контакт</strong
+                ><span class="field">Ирина Волкова</span>
+                <div class="mock-line">
+                  Группы <span class="tag">Друзья</span> <span class="tag">Теннис</span>
+                </div>
+              </div>
+            </div>
+            <p class="caption">
+              Новый контакт сразу ваш. В обеих формах доступны ваши группы, а чужая форма
+              редактирования закрыта.
+            </p>
+          </article>
+          <article class="screen">
+            <h3>Список групп и панель выбора</h3>
+            <div class="screen-body">
+              <div class="mock new">
+                <div class="mock-line spread">
+                  <strong class="mock-title">Группы</strong
+                  ><span class="mock-button">Добавить группу</span>
+                </div>
+                <div class="mock-row">Друзья</div>
+                <div class="mock-row">Теннис</div>
+              </div>
+              <div class="mock new">
+                <span class="field">Найти группу</span>
+                <div class="mock-line">
+                  <span class="tag">Все группы</span><span class="tag">Друзья</span
+                  ><span class="tag">Теннис</span>
+                </div>
+              </div>
+            </div>
+            <p class="caption">
+              Даже если Борис тоже создаст группу «Друзья», здесь у Анны будет только её группа.
+            </p>
+          </article>
+          <article class="screen">
+            <h3>Страница группы</h3>
+            <div class="screen-body">
+              <div class="mock new">
+                <p class="muted">Все группы</p>
+                <div class="mock-line spread">
+                  <strong class="mock-title">Друзья</strong
+                  ><span class="mock-button">Изменить</span>
+                </div>
+                <div class="mock-line">
+                  <span class="mock-button">Добавить участника</span
+                  ><span class="muted">2 контакта</span>
+                </div>
+                <div class="mock-row">Ирина Волкова</div>
+                <div class="mock-row">Дмитрий Соколов</div>
+              </div>
+            </div>
+            <p class="caption">
+              Группу и её участников видит владелец. При добавлении участника поиск идёт по его
+              контактам.
+            </p>
+          </article>
+          <article class="screen screen-wide">
+            <h3>Чужая ссылка на запись</h3>
+            <div class="screen-body pair">
+              <div class="mock new"><strong class="mock-title">Контакт не найден</strong></div>
+              <div class="mock new"><strong class="mock-title">Группа не найдена</strong></div>
+            </div>
+            <p class="caption">
+              По прямой ссылке на чужую карточку, форму редактирования или группу открывается
+              обычная страница отсутствующей записи.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="rules" aria-labelledby="rules-title">
+        <h2 id="rules-title">Как это работает</h2>
+        <div class="rules">
+          <article class="rule">
+            <h3>Один адрес — одна учётная запись</h3>
+            <p>
+              При первом входе достаточно письма. Пробелы по краям убираются, регистр букв значения
+              не имеет.
+            </p>
+            <p class="example">
+              « ANNA@example.test » откроет тот же список, что и anna@example.test.
+            </p>
+          </article>
+          <article class="rule">
+            <h3>Только последняя ссылка, только один раз</h3>
+            <p>
+              Ссылка действует 15 минут. Если вам пришла новая, открывайте её. При одновременном
+              открытии одного письма вход сработает в одном браузере.
+            </p>
+            <p class="example">
+              Запросили письма в 10:00 и 10:03. В 10:05 можно войти по второму, если им ещё не
+              пользовались.
+            </p>
+          </article>
+          <article class="rule">
+            <h3>Три письма за десять минут на адрес</h3>
+            <p>
+              CRM смотрит на предыдущие десять минут при каждом запросе. Для другого адреса счёт
+              отдельный.
+            </p>
+            <p class="example">
+              Письма в 10:00, 10:02 и 10:04. В 10:06 будет сообщение о лимите, а в 10:11 можно
+              получить ещё одно.
+            </p>
+          </article>
+          <article class="rule">
+            <h3>Тридцать дней с последнего захода</h3>
+            <p>
+              Срок считается отдельно для каждого устройства. Каждый заход продлевает вход на этом
+              устройстве. Кнопка «Выйти» завершает только текущий вход.
+            </p>
+            <p class="example">
+              Зашли на ноутбуке через 20 дней — новый отсчёт начинается с этого захода. На телефоне
+              срок зависит от последнего захода на телефоне.
+            </p>
+          </article>
+          <article class="rule">
+            <h3>В списке, поиске и по ссылке действуют одни права</h3>
+            <p>
+              CRM проверяет владельца при открытии и сохранении записей. Заметки принадлежат
+              владельцу контакта. В группу входят только контакты её владельца.
+            </p>
+            <p class="example">
+              У Анны и Бориса может быть по группе «Друзья». Состав, результаты поиска и напоминания
+              у каждого свои.
+            </p>
+          </article>
+          <article class="rule">
+            <h3>Письма доставляются по настройкам запуска</h3>
+            <p>
+              Локально и в браузерных тестах письма идут в Mailpit. На сервере Resend доставляет их
+              в настоящий почтовый ящик.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="data" aria-labelledby="data-title">
+        <h2 id="data-title">Модель данных до и после</h2>
+        <p class="intro">
+          У контакта и группы появится ссылка на владельца. Заметка узнаёт своего владельца через
+          контакт.
+        </p>
+        <div class="legend" aria-label="Обозначения на схемах">
+          <span class="legend-new">Новое</span><span>Как было</span>
+        </div>
+        <div class="pair">
+          <figure class="diagram">
+            <h3>Сейчас</h3>
+            <div class="schema">
+              <div class="entity">
+                <header><strong>Контакты</strong><code>contacts</code></header>
+                <p>Имя, телефон, почта, частота общения и отметка.</p>
+              </div>
+              <div class="entity">
+                <header><strong>Группы</strong><code>groups</code></header>
+                <p>Название группы.</p>
+              </div>
+              <p class="relation wide">Контакты ↔ состав группы ↔ группы</p>
+              <div class="entity wide">
+                <header><strong>Состав групп</strong><code>contact_groups</code></header>
+                <p>Каждая запись соединяет контакт и группу.</p>
+              </div>
+              <p class="relation wide">Контакт ↓ его заметки</p>
+              <div class="entity wide">
+                <header><strong>Заметки</strong><code>notes</code></header>
+                <p>Текст, дата и номер контакта.</p>
+              </div>
+            </div>
+          </figure>
+          <figure class="diagram">
+            <h3>После</h3>
+            <div class="schema">
+              <div class="entity new wide">
+                <header><strong>Учётная запись</strong></header>
+                <p>Номер пользователя и почта. К записи относятся входы на разных устройствах.</p>
+              </div>
+              <p class="relation new-link">↓ Владелец контактов</p>
+              <p class="relation new-link">↓ Владелец групп</p>
+              <div class="entity">
+                <header><strong>Контакты</strong><code>contacts</code></header>
+                <p>Прежние данные.</p>
+                <p class="added">Владелец <code>owner_id</code></p>
+              </div>
+              <div class="entity">
+                <header><strong>Группы</strong><code>groups</code></header>
+                <p>Прежнее название.</p>
+                <p class="added">Владелец <code>owner_id</code></p>
+              </div>
+              <p class="relation wide">Контакты ↔ состав группы ↔ группы</p>
+              <div class="entity wide">
+                <header><strong>Состав групп</strong><code>contact_groups</code></header>
+                <p>Прежние связи.</p>
+                <p class="added">Обе записи в связи принадлежат одному человеку.</p>
+              </div>
+              <p class="relation wide">Контакт ↓ его заметки</p>
+              <div class="entity wide">
+                <header><strong>Заметки</strong><code>notes</code></header>
+                <p>Прежние текст, дата и номер контакта.</p>
+              </div>
+              <div class="entity new wide">
+                <header><strong>Данные входа и писем</strong></header>
+                <p>
+                  Срок входа на устройстве, проверка последней ссылки и учёт недавних писем по
+                  адресу.
+                </p>
+              </div>
+            </div>
+          </figure>
+        </div>
+        <h3 class="subheading">Как CRM ищет запись</h3>
+        <div class="pair">
+          <article class="card lookup">
+            <h4>Анна открывает контакт № 42</h4>
+            <p>
+              CRM проверяет номер контакта и владельца. Оба совпали, открываются карточка Ирины и её
+              заметки.
+            </p>
+          </article>
+          <article class="card lookup">
+            <h4>Борис открывает тот же адрес</h4>
+            <p>Записи № 42 среди контактов Бориса нет. CRM показывает «Контакт не найден».</p>
+          </article>
+        </div>
+        <h3 class="subheading">Обновление базы и откат</h3>
+        <div class="stack">
+          <article class="card">
+            <h4>Одна миграция — обновление структуры базы</h4>
+            <p>
+              Создаёт данные для входа, добавляет обязательного владельца контактам и группам и
+              проверку владельца в составе групп. При наличии старых записей назначает им владельца
+              по согласованной почте.
+            </p>
+            <p>
+              <strong>Какие записи изменятся.</strong> У прежних контактов и групп появится
+              владелец. Их количество, номера, ссылки, заметки, состав групп и настройки общения
+              сохранятся. Демо-данные также будут создаваться для владельца.
+            </p>
+          </article>
+          <article class="card">
+            <h4>Порядок первой выкатки</h4>
+            <p>
+              Показать миграцию владельцу и проверить на тестовой базе. На сервере остановить CRM,
+              снять резервную копию, обновить базу и после успеха запустить новую версию. Затем
+              проверить, что CRM отвечает, приходит письмо и на месте прежние записи.
+            </p>
+          </article>
+          <article class="card">
+            <h4>Ручной откат</h4>
+            <p>
+              Владелец восстанавливает резервную копию до выкатки и возвращает соответствующую
+              прежнюю версию CRM отдельными шагами. На это время доступ к CRM закрыт.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="checklist" aria-labelledby="checklist-title">
+        <h2 id="checklist-title">Как проверить руками</h2>
+        <p class="intro">
+          После реализации откройте тестовую CRM и Mailpit. Возьмите два разных адреса и два
+          отдельных браузера или профиля. Для строк с прямым запросом и проверкой срока входа
+          попросите разработчика подготовить тестовое окружение.
+        </p>
+        <div class="check-progress">
+          <label for="progress"
+            >Пройдено <output id="check-count" aria-live="polite">0 из 44</output></label
+          >
+          <progress id="progress" value="0" max="44"></progress>
+        </div>
+        <div class="stack">
+          <details open>
+            <summary>Вход и письма · 18 проверок</summary>
+            <div class="checks">
+              <label class="check"
+                ><input type="checkbox" id="auth-required" /><span class="check-body"
+                  ><strong>Открыл CRM без входа</strong
+                  ><span
+                    >В чистом браузере откройте главную, прямую ссылку на карточку, форму контакта и
+                    страницу группы.</span
+                  ><span class="expected"
+                    >В каждом случае видны поле почты и «Получить ссылку». Данные CRM скрыты.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="auth-same-response" /><span class="check-body"
+                  ><strong>Запросил ссылку для нового или знакомого адреса</strong
+                  ><span
+                    >Запросите письмо для нового адреса и для адреса, с которым уже входили.</span
+                  ><span class="expected"
+                    >На оба адреса приходит письмо. В обоих случаях форма показывает «Ссылка для
+                    входа отправлена на …».</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="auth-normalized" /><span class="check-body"
+                  ><strong>Записал ту же почту с пробелами и заглавными буквами</strong
+                  ><span
+                    >Войдите, добавьте контакт, выйдите. Введите тот же адрес с пробелами по краям и
+                    заглавными буквами. Откройте ссылку из нового письма.</span
+                  ><span class="expected"
+                    >В подтверждении адрес без пробелов и заглавных букв. В CRM виден созданный
+                    контакт.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="auth-invalid-form" /><span class="check-body"
+                  ><strong>Ввёл адрес неверного формата</strong
+                  ><span
+                    >Отправьте пустое поле, затем введите <code>anna@</code> и отправьте ещё
+                    раз.</span
+                  ><span class="expected">Под полем «Проверь адрес почты». Писем нет.</span></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="auth-invalid-server" /><span class="check-body"
+                  ><strong>Отправил неверный адрес напрямую на сервер</strong
+                  ><span
+                    >Попросите разработчика отправить из тестового браузера запрос с неверным
+                    адресом напрямую. Проверьте Mailpit.</span
+                  ><span class="expected">Сервер отклоняет запрос. Письма нет.</span></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="auth-message" /><span class="check-body"
+                  ><strong>Открыл письмо для входа</strong
+                  ><span>Запросите ссылку и откройте письмо в Mailpit или почтовом ящике.</span
+                  ><span class="expected"
+                    >Отправитель «Личная CRM» с адресом <code>noreply@mail.crm.kropcrm.ru</code>,
+                    тема «Вход в Личную CRM», кнопка «Войти», срок 15 минут и текст «Если вы не
+                    запрашивали вход - просто проигнорируйте письмо».</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="auth-first-login" /><span class="check-body"
+                  ><strong>Впервые вошёл по ссылке</strong
+                  ><span>Запросите письмо на новый адрес и нажмите «Войти».</span
+                  ><span class="expected"
+                    >Открылась CRM. В шапке ваша почта и кнопка «Выйти». Дополнительных полей при
+                    входе нет.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="auth-used-link" /><span class="check-body"
+                  ><strong>Открыл уже использованную ссылку</strong
+                  ><span
+                    >Войдите по письму, откройте его ссылку в другом браузере без входа и нажмите
+                    кнопку под сообщением.</span
+                  ><span class="expected"
+                    >«Ссылка устарела, запроси новую». Кнопка открывает форму входа.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="auth-expired-link" /><span class="check-body"
+                  ><strong>Открыл ссылку через 15 минут</strong
+                  ><span
+                    >Запросите письмо, подождите 15 минут с момента выдачи и откройте ссылку первый
+                    раз.</span
+                  ><span class="expected"
+                    >«Ссылка устарела, запроси новую» и кнопка на страницу входа.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="auth-replaced-link" /><span class="check-body"
+                  ><strong>Запросил новую ссылку</strong
+                  ><span
+                    >Запросите два письма на одну почту. В течение 15 минут откройте первое, затем
+                    второе.</span
+                  ><span class="expected"
+                    >Первое даёт сообщение об устаревшей ссылке, второе открывает CRM.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="auth-parallel-link" /><span class="check-body"
+                  ><strong>Открыл одно письмо одновременно в двух браузерах</strong
+                  ><span
+                    >Откройте одну ещё действующую ссылку одновременно в двух браузерах без
+                    входа.</span
+                  ><span class="expected"
+                    >В одном открылась CRM, в другом появилось сообщение об устаревшей ссылке.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="auth-fourth-email" /><span class="check-body"
+                  ><strong>Запросил четвёртую ссылку</strong
+                  ><span
+                    >Четыре раза за 10 минут отправьте запрос на одну почту. В одном запросе
+                    добавьте пробелы и заглавные буквы. Запросите ещё раз, когда с первого письма
+                    пройдёт 10 минут, а со второго ещё нет.</span
+                  ><span class="expected"
+                    >После первых четырёх запросов есть три письма и сообщение «Слишком часто,
+                    попробуй через несколько минут». Последний запрос даёт новое письмо.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="auth-other-email" /><span class="check-body"
+                  ><strong>Запросил ссылку на другой адрес</strong
+                  ><span>Исчерпайте лимит на первом адресе и сразу запросите ссылку на второй.</span
+                  ><span class="expected">Письмо приходит на второй адрес.</span></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="auth-one-logout" /><span class="check-body"
+                  ><strong>Вышел в одном из двух браузеров</strong
+                  ><span
+                    >Войдите под одной почтой в двух браузерах, запросив отдельное письмо для
+                    каждого. В первом нажмите «Выйти», во втором обновите страницу.</span
+                  ><span class="expected"
+                    >В первом форма входа, во втором по-прежнему видны свои контакты.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="auth-rolling-session" /><span class="check-body"
+                  ><strong>Вернулся до окончания срока входа</strong
+                  ><span
+                    >На тесте с подготовленными датами войдите в CRM, вернитесь на 20-й день, а
+                    затем на 40-й день после первого входа на том же устройстве. При повторных
+                    заходах достаточно открыть главную.</span
+                  ><span class="expected">Оба захода открывают CRM без нового письма.</span></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="auth-expired-session" /><span class="check-body"
+                  ><strong>Не заходил 30 дней</strong
+                  ><span
+                    >В тестовом окружении откройте CRM через 30 дней без заходов на этом
+                    устройстве.</span
+                  ><span class="expected">Открывается форма входа.</span></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="auth-mailpit" /><span class="check-body"
+                  ><strong>Вошёл локально по адресу без настоящего ящика</strong
+                  ><span
+                    >В локальной CRM запросите письмо на <code>boris@example.test</code>. Откройте
+                    Mailpit и перейдите по присланной ссылке.</span
+                  ><span class="expected"
+                    >Письмо на этот адрес есть в Mailpit, ссылка открывает локальную CRM.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="auth-resend" /><span class="check-body"
+                  ><strong>Получил настоящее письмо после выкатки</strong
+                  ><span
+                    >На серверной CRM запросите ссылку на собственную почту и откройте письмо.</span
+                  ><span class="expected"
+                    >Письмо через Resend приходит в настоящий ящик, ссылка ведёт в серверную
+                    CRM.</span
+                  ></span
+                ></label
+              >
+            </div>
+          </details>
+          <details>
+            <summary>Личные данные и перенос · 9 проверок</summary>
+            <div class="checks">
+              <label class="check"
+                ><input type="checkbox" id="owner-two-people" /><span class="check-body"
+                  ><strong>Два человека пользуются одной CRM</strong
+                  ><span
+                    >Войдите как Анна, добавьте Ирину Волкову и скопируйте ссылку на карточку. В
+                    чистом браузере впервые войдите как Борис. Откройте главную, поищите Ирину по
+                    имени и откройте скопированную ссылку.</span
+                  ><span class="expected"
+                    >У Бориса «Добавь первый контакт», поиск пуст, по ссылке «Контакт не
+                    найден».</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="owner-edit-page" /><span class="check-body"
+                  ><strong>Открыл чужую форму редактирования</strong
+                  ><span
+                    >У Анны создайте контакт с заметкой. Скопируйте адрес его формы редактирования и
+                    откройте в браузере Бориса.</span
+                  ><span class="expected"
+                    >«Контакт не найден». Поля контакта и текст заметки не видны.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="owner-contact-actions" /><span class="check-body"
+                  ><strong>Сервер повторно проверил доступ к контакту при сохранении</strong
+                  ><span
+                    >Попросите разработчика выполнить в тестовой CRM от имени Бориса изменение,
+                    добавление заметки и удаление для контакта Анны. Откройте карточку в браузере
+                    Анны.</span
+                  ><span class="expected"
+                    >Все действия отклонены. Контакт, его данные и заметка на месте.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="owner-signed-out-action" /><span class="check-body"
+                  ><strong>Сервер получил действие после окончания входа</strong
+                  ><span
+                    >Откройте редактирование контакта, в другой вкладке этого браузера выйдите и
+                    попробуйте сохранить уже открытую форму.</span
+                  ><span class="expected"
+                    >Сохранение отклонено. При новом входе данные прежние.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="owner-group-page" /><span class="check-body"
+                  ><strong>Открыл чужую группу по прямой ссылке</strong
+                  ><span
+                    >Создайте у Анны группу с участником и откройте ссылку на неё в браузере
+                    Бориса.</span
+                  ><span class="expected"
+                    >У Бориса не видны название и участники группы Анны.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="owner-membership" /><span class="check-body"
+                  ><strong>Сервер получил номера записей разных владельцев</strong
+                  ><span
+                    >Попросите разработчика проверить в тестовой CRM две попытки от имени Бориса.
+                    Первая связывает его группу с контактом Анны. Вторая связывает его контакт с
+                    группой Анны.</span
+                  ><span class="expected"
+                    >Обе попытки отклонены, состав групп обоих владельцев прежний.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="owner-group-actions" /><span class="check-body"
+                  ><strong>Сервер получил действие изменения чужой группы</strong
+                  ><span
+                    >Попросите разработчика проверить в тестовой CRM переименование, удаление группы
+                    Анны и снятие участия в ней от имени Бориса.</span
+                  ><span class="expected"
+                    >Действия отклонены. У Анны сохранились название и состав группы.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="owner-migration" /><span class="check-body"
+                  ><strong>Владелец открыл CRM после обновления базы с данными</strong
+                  ><span
+                    >На тестовой копии запишите количество контактов, заметок и групп. Сохраните
+                    ссылки на карточку с заметкой, частотой и отметкой «Связался» и на группу. После
+                    обновления войдите под почтой владельца и сравните. Повторите просмотр под
+                    другой почтой.</span
+                  ><span class="expected"
+                    >Число записей, данные и связи сохранились. Под другим адресом их не
+                    видно.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="owner-demo" /><span class="check-body"
+                  ><strong>Проверил демо-данные под двумя адресами</strong
+                  ><span
+                    >В локальной базе с демо-данными войдите под почтой владельца и под другим
+                    адресом в отдельном браузере.</span
+                  ><span class="expected"
+                    >Демо-контакты и заметки видны владельцу. У другого адреса список пуст.</span
+                  ></span
+                ></label
+              >
+            </div>
+          </details>
+          <details>
+            <summary>Группы и фильтр · 9 проверок</summary>
+            <div class="checks">
+              <label class="check"
+                ><input type="checkbox" id="groups-create" /><span class="check-body"
+                  ><strong>Создал группу в разделе</strong
+                  ><span
+                    >Откройте раздел «Группы», нажмите «Добавить группу», сохраните «Теннис» и
+                    обновите страницу.</span
+                  ><span class="expected"
+                    >«Теннис» есть в списке групп и доступен в форме контакта.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="groups-empty-name" /><span class="check-body"
+                  ><strong>Оставил название пустым</strong
+                  ><span
+                    >Попробуйте сохранить новую группу с пустым названием, затем с одними
+                    пробелами.</span
+                  ><span class="expected"
+                    >В обоих случаях форма просит указать название, новой группы в списке нет.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="groups-same-name" /><span class="check-body"
+                  ><strong>Два человека создали группу «Друзья»</strong
+                  ><span
+                    >У Анны и Бориса создайте по группе «Друзья» и добавьте по одному своему
+                    контакту.</span
+                  ><span class="expected"
+                    >В разделе «Группы» каждый видит свою группу «Друзья» со своим контактом.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="groups-panel-search" /><span class="check-body"
+                  ><strong>Нашёл группу в длинном списке</strong
+                  ><span
+                    >В длинном списке панели над «Пора связаться» введите часть названия и выберите
+                    найденную группу.</span
+                  ><span class="expected"
+                    >Панель закрылась. На кнопке название выбранной группы.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="groups-directory" /><span class="check-body"
+                  ><strong>Открыл список групп с главной</strong
+                  ><span>Нажмите «Список групп» рядом с фильтром.</span
+                  ><span class="expected">Открылся раздел «Группы».</span></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="groups-private-search" /><span class="check-body"
+                  ><strong>Ищу название чужой группы в панели</strong
+                  ><span
+                    >Создайте «Теннис» только у Анны. В браузере Бориса найдите это название в
+                    панели выбора.</span
+                  ><span class="expected">Группа Анны не появляется.</span></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="groups-apply-reset" /><span class="check-body"
+                  ><strong>Выбрал и сбросил фильтр</strong
+                  ><span
+                    >Добавьте Анну в «Теннис» и «Друзья», Бориса только в «Друзья», Веру оставьте
+                    без группы. Выберите «Теннис», затем «Все группы».</span
+                  ><span class="expected"
+                    >Сначала видна только Анна с двумя названиями групп, после сброса видны все
+                    трое.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="groups-search-inside" /><span class="check-body"
+                  ><strong>Ищу по имени в выбранной группе</strong
+                  ><span
+                    >Добавьте Анну Петрову в «Теннис», Анну Иванову оставьте вне этой группы.
+                    Выберите «Теннис», найдите «Анна» и сбросьте только фильтр группы.</span
+                  ><span class="expected"
+                    >Сначала видна только Анна Петрова. После сброса запрос «Анна» сохранился, видны
+                    обе Анны.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="groups-direct-filter" /><span class="check-body"
+                  ><strong>Открыл главную с номером чужой группы в адресе</strong
+                  ><span
+                    >В браузере Анны выберите группу на главной и скопируйте адрес страницы.
+                    Откройте его в браузере Бориса.</span
+                  ><span class="expected"
+                    >Название группы и её участники не появляются в списке, поиске и блоке «Пора
+                    связаться».</span
+                  ></span
+                ></label
+              >
+            </div>
+          </details>
+          <details>
+            <summary>Пора связаться · 8 проверок</summary>
+            <div class="checks">
+              <label class="check"
+                ><input type="checkbox" id="reminders-overdue" /><span class="check-body"
+                  ><strong>Контакт с прошедшим сроком</strong
+                  ><span
+                    >Откройте главную с контактом, у которого частота раз в месяц и срок прошёл 12
+                    дней назад.</span
+                  ><span class="expected"
+                    >В блоке видна строка «Раз в месяц · просрочено на 12 дней». Контакт также есть
+                    в общем списке.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="reminders-order" /><span class="check-body"
+                  ><strong>Самые просроченные сверху</strong
+                  ><span
+                    >Откройте главную с контактами Анной, Борисом и Верой. Их сроки соответственно
+                    прошли 40 дней назад, 3 дня назад и наступают сегодня.</span
+                  ><span class="expected">В блоке сверху вниз Анна, Борис, Вера.</span></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="reminders-future" /><span class="check-body"
+                  ><strong>Срок ещё не наступил</strong
+                  ><span>Откройте главную, когда у контакта срок завтра.</span
+                  ><span class="expected">Этого контакта нет в блоке.</span></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="reminders-card" /><span class="check-body"
+                  ><strong>Открыть карточку из блока</strong
+                  ><span>Нажмите на строку контакта в блоке «Пора связаться».</span
+                  ><span class="expected">Открылась карточка этого контакта.</span></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="reminders-no-frequency" /><span class="check-body"
+                  ><strong>Убрал частоту</strong
+                  ><span
+                    >Откройте из блока карточку контакта, выберите «Не задано» и вернитесь на
+                    главную.</span
+                  ><span class="expected">Этого контакта в блоке больше нет.</span></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="reminders-filter" /><span class="check-body"
+                  ><strong>Выбрал и сбросил фильтр группы</strong
+                  ><span
+                    >Возьмите двух контактов с наступившим сроком из разных групп. Выберите одну
+                    группу, затем «Все группы».</span
+                  ><span class="expected"
+                    >С фильтром в блоке один контакт. После сброса видны оба.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="reminders-two-people" /><span class="check-body"
+                  ><strong>Пора связаться у двух разных пользователей</strong
+                  ><span
+                    >Откройте главную под двумя адресами, у каждого из которых по одному контакту с
+                    наступившим сроком.</span
+                  ><span class="expected"
+                    >В каждом браузере в блоке только свой контакт, а в счётчике — один.</span
+                  ></span
+                ></label
+              >
+              <label class="check"
+                ><input type="checkbox" id="reminders-private-actions" /><span class="check-body"
+                  ><strong>Сервер получил действие для чужой отметки</strong
+                  ><span
+                    >Для контакта Анны с частотой и отметкой попросите разработчика проверить
+                    действия от имени Бориса в тестовой CRM. Проверьте смену частоты, «Связался» и
+                    отмену отметки.</span
+                  ><span class="expected"
+                    >Все действия отклонены. Частота, отметка и срок у Анны прежние.</span
+                  ></span
+                ></label
+              >
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <section id="decisions" aria-labelledby="decisions-title">
+        <h2 id="decisions-title">Что агент решил сам</h2>
+        <div class="pair">
+          <article class="card stack">
+            <h3>Продуктовые решения</h3>
+            <p>
+              Самостоятельных продуктовых решений в плане нет. Правила входа, сроков, доступа и
+              переноса взяты из требований.
+            </p>
+            <p>
+              Расположение элементов и подпись кнопки «На страницу входа» здесь показаны для
+              наглядности.
+            </p>
+          </article>
+          <article class="card stack">
+            <h3>Технические решения</h3>
+            <p>
+              Владельца храним у контакта и группы. Для заметки определяем его через контакт. База
+              дополнительно проверяет, что группа и её участник принадлежат одному человеку.
+            </p>
+            <p>
+              Недавние запросы и отпечаток последней ссылки сохраняем в базе. Это даёт одинаковое
+              поведение при одновременных запросах.
+            </p>
+            <p>
+              Для первого перехода предусмотрена пауза перед резервной копией. Она нужна, чтобы
+              старое приложение не приняло новую запись во время переноса.
+            </p>
+            <p>
+              Один почтовый модуль отправляет письма и в Mailpit, и через Resend. Куда отправлять,
+              определяют настройки запуска.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="questions" aria-labelledby="questions-title">
+        <h2 id="questions-title">Что осталось неясным</h2>
+        <article class="card">
+          <h3>Откуда брать вашу почту для переноса?</h3>
+          <p>
+            При начале реализации нужно согласовать, как сообщить приложению адрес владельца для
+            переноса существующих записей и создания демо-данных.
+          </p>
+        </article>
+      </section>
+    </main>
+    <script>
+      const checklist = document.querySelector("#checklist");
+      const checks = [...checklist.querySelectorAll('input[type="checkbox"]')];
+      const checkCount = document.querySelector("#check-count");
+      const progress = document.querySelector("#progress");
+      const storageKey = "personal-crm-login-overview";
+
+      try {
+        const checkedIds = JSON.parse(localStorage.getItem(storageKey) ?? "[]");
+        for (const check of checks) check.checked = checkedIds.includes(check.id);
+      } catch {
+        // Checkboxes remain usable in browsers that block local file storage.
+      }
+
+      function updateProgress() {
+        const checked = checks.filter((check) => check.checked);
+        checkCount.value = `${checked.length} из ${checks.length}`;
+        progress.max = checks.length;
+        progress.value = checked.length;
+        return checked.map((check) => check.id);
+      }
+
+      updateProgress();
+      checklist.addEventListener("change", () => {
+        const checkedIds = updateProgress();
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(checkedIds));
+        } catch {
+          // Current progress remains visible for this visit.
+        }
+      });
+    </script>
+  </body>
+</html>

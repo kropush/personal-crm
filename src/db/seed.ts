@@ -2,19 +2,22 @@
 // of them have a keep-in-touch frequency, and a few "Тестов" contacts sit on
 // the edges of the countdown to check the dates by hand.
 //
-//   pnpm db:seed            fills an empty database
-//   pnpm db:seed --reset    deletes ALL contacts and notes first, then fills
+//   pnpm db:seed            fills the configured owner's empty contact list
+//   pnpm db:seed --reset    replaces only that owner's contacts and notes
 //
 // The data is generated from a fixed random seed, so every run produces the
 // same people. Emails use the reserved example.* domains on purpose.
 
-import { sql } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
+
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
+import { normalizeLoginEmail } from "../lib/login-email";
 import { getDatabaseConfig, loadEnvFileIfPresent } from "./config";
 import type { KeepInTouchFrequency } from "./keep-in-touch";
-import { contacts, notes, type NewContact, type NewNote } from "./schema";
+import { contacts, notes, user, type NewContact, type NewNote } from "./schema";
 
 const CONTACT_COUNT = 1000;
 const RANDOM_SEED = 20261010;
@@ -922,7 +925,7 @@ function randomMoment(from: Date, to: Date) {
 
 type SeedNote = Omit<NewNote, "contactId"> & { createdAt: Date };
 type SeedContact = {
-  contact: NewContact & { createdAt: Date };
+  contact: Omit<NewContact, "ownerId"> & { createdAt: Date };
   notes: SeedNote[];
 };
 
@@ -1094,34 +1097,41 @@ function inBatches<T>(items: T[], size: number): T[][] {
 async function main() {
   loadEnvFileIfPresent();
 
+  const email = normalizeLoginEmail(process.env.CRM_OWNER_EMAIL);
+  if (!email) throw new Error("Set a valid CRM_OWNER_EMAIL before seeding demo data");
+
   const shouldReset = process.argv.includes("--reset");
   const pool = new Pool(getDatabaseConfig());
   const db = drizzle({ client: pool });
 
   try {
-    const existingCount = await db.$count(contacts);
-    if (existingCount > 0 && !shouldReset) {
-      console.error(`The contacts table already has ${existingCount} rows, nothing was changed.`);
-      console.error("To delete ALL contacts and notes and seed again, run: pnpm db:seed --reset");
-      process.exitCode = 1;
-      return;
-    }
+    const result = await db.transaction(async (tx) => {
+      await tx.insert(user).values({ id: randomUUID(), name: "", email }).onConflictDoNothing({
+        target: user.email,
+      });
+      const [owner] = await tx
+        .select({ id: user.id })
+        .from(user)
+        .where(eq(user.email, email))
+        .for("update");
+      const ownedContacts = eq(contacts.ownerId, owner.id);
+      const existingCount = await tx.$count(contacts, ownedContacts);
+      if (existingCount > 0 && !shouldReset) return { existingCount };
 
-    const now = new Date();
-    const seedContacts = createContacts(now, CONTACT_COUNT - BOUNDARY_CONTACTS.length);
-    addKeepInTouch(seedContacts, now);
-    seedContacts.push(...createBoundaryContacts(now));
-    let noteCount = 0;
-
-    await db.transaction(async (tx) => {
       if (shouldReset) {
-        await tx.execute(sql`truncate table ${notes}, ${contacts} restart identity`);
+        await tx.delete(contacts).where(ownedContacts);
       }
+
+      const now = new Date();
+      const seedContacts = createContacts(now, CONTACT_COUNT - BOUNDARY_CONTACTS.length);
+      addKeepInTouch(seedContacts, now);
+      seedContacts.push(...createBoundaryContacts(now));
+      let noteCount = 0;
 
       for (const batch of inBatches(seedContacts, INSERT_BATCH_SIZE)) {
         const inserted = await tx
           .insert(contacts)
-          .values(batch.map((item) => item.contact))
+          .values(batch.map((item) => ({ ...item.contact, ownerId: owner.id })))
           .returning({ id: contacts.id });
 
         // Rows come back in the order they were inserted
@@ -1133,9 +1143,16 @@ async function main() {
           noteCount += batchNotes.length;
         }
       }
+      return { contactCount: seedContacts.length, noteCount };
     });
 
-    console.log(`Seeded ${seedContacts.length} contacts and ${noteCount} notes.`);
+    if ("existingCount" in result) {
+      console.error(`The owner already has ${result.existingCount} contacts, nothing was changed.`);
+      console.error("To replace the owner's contacts and notes, run: pnpm db:seed --reset");
+      process.exitCode = 1;
+      return;
+    }
+    console.log(`Seeded ${result.contactCount} contacts and ${result.noteCount} notes.`);
   } finally {
     await pool.end();
   }

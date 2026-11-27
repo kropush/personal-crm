@@ -16,19 +16,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getContact, getKeepInTouchStatus, getNotes } from "@/lib/contacts";
 import { formatDateTime, getPhoneHref } from "@/lib/format";
 import { getContactGroups } from "@/lib/groups";
+import { requireUser } from "@/lib/session";
 import { cn } from "@/lib/utils";
 import { parseRecordId } from "@/lib/validation";
 
 type Params = PageProps<"/contacts/[id]">["params"];
 
-async function loadContact(params: Params) {
+async function loadContact(params: Params, ownerId: string) {
   const { id } = await params;
   const contactId = parseRecordId(id);
-  return contactId ? getContact(contactId) : undefined;
+  return contactId ? getContact(ownerId, contactId) : undefined;
 }
 
 export async function generateMetadata({ params }: PageProps<"/contacts/[id]">): Promise<Metadata> {
-  const contact = await loadContact(params);
+  const { id: ownerId } = await requireUser();
+  const contact = await loadContact(params, ownerId);
   return { title: contact?.name ?? "Контакт не найден" };
 }
 
@@ -44,14 +46,15 @@ export default function ContactPage({ params }: PageProps<"/contacts/[id]">) {
 }
 
 async function ContactCard({ params }: { params: Params }) {
-  const contact = await loadContact(params);
+  const { id: ownerId } = await requireUser();
+  const contact = await loadContact(params, ownerId);
   if (!contact) {
     notFound();
   }
   const [notes, keepInTouchStatus, groups] = await Promise.all([
-    getNotes(contact.id),
-    getKeepInTouchStatus(contact.id),
-    getContactGroups(contact.id),
+    getNotes(ownerId, contact.id),
+    getKeepInTouchStatus(ownerId, contact.id),
+    getContactGroups(ownerId, contact.id),
   ]);
   if (!keepInTouchStatus) {
     // Deleted in another browser a moment ago
