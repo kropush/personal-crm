@@ -23,6 +23,8 @@ server=(ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes
 echo "==> Copying deploy/ to the server"
 # A fresh copy every time, so files deleted from the repo disappear there too
 tar -czf - -C deploy . | "${server[@]}" "set -e
+  exec 9>>$remote_dir/.production.lock
+  flock -n 9 || { echo 'ERROR: A production deployment or restore is already in progress.' >&2; exit 1; }
   rm -rf $remote_dir/deploy.new
   mkdir $remote_dir/deploy.new
   tar -xzf - -C $remote_dir/deploy.new
