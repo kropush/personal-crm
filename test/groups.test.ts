@@ -10,7 +10,13 @@ import ContactPage from "@/app/contacts/[id]/page";
 import GroupPage from "@/app/groups/[id]/page";
 import GroupsPage from "@/app/groups/page";
 import ContactsPage from "@/app/page";
-import { addGroupMemberAction, createGroupAction, deleteGroupAction, removeGroupMemberAction, renameGroupAction } from "@/app/groups/actions";
+import {
+  addGroupMemberAction,
+  createGroupAction,
+  deleteGroupAction,
+  removeGroupMemberAction,
+  renameGroupAction,
+} from "@/app/groups/actions";
 import { ContactForm } from "@/components/contact-form";
 import { ContactList } from "@/components/contact-list";
 import { ReachOutSection } from "@/components/reach-out-section";
@@ -26,7 +32,7 @@ vi.mock("server-only", () => ({}));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn(), refresh: vi.fn() }));
 vi.mock("next/server", () => ({ connection: vi.fn(async () => {}) }));
 vi.mock("next/navigation", async (importOriginal) => ({
-  ...await importOriginal<typeof import("next/navigation")>(),
+  ...(await importOriginal<typeof import("next/navigation")>()),
   useRouter: () => ({ bfcacheId: "test" }),
   useSearchParams: () => new URLSearchParams(),
 }));
@@ -36,8 +42,14 @@ let database: Awaited<ReturnType<typeof openTestDatabase>>;
 
 const emptyContactState: ContactFormState = {
   values: {
-    name: "", about: "", howWeMet: "", phone: "", email: "", groupIds: [],
-    newGroupName: "", newGroupNames: [],
+    name: "",
+    about: "",
+    howWeMet: "",
+    phone: "",
+    email: "",
+    groupIds: [],
+    newGroupName: "",
+    newGroupNames: [],
   },
   fieldErrors: {},
 };
@@ -70,7 +82,9 @@ function renderView(view: ReactNode) {
     const body = new PassThrough();
     body.setEncoding("utf8");
     let html = "";
-    body.on("data", (chunk) => { html += chunk; });
+    body.on("data", (chunk) => {
+      html += chunk;
+    });
     body.on("end", () => resolve(html));
     body.on("error", reject);
     const stream = renderToPipeableStream(view, {
@@ -81,16 +95,20 @@ function renderView(view: ReactNode) {
 }
 
 function renderGroupPage(groupId: number, query?: string) {
-  return renderView(createElement(GroupPage, {
-    params: Promise.resolve({ id: String(groupId) }),
-    searchParams: Promise.resolve({ q: query }),
-  }));
+  return renderView(
+    createElement(GroupPage, {
+      params: Promise.resolve({ id: String(groupId) }),
+      searchParams: Promise.resolve({ q: query }),
+    }),
+  );
 }
 
 function renderReminders(groupId?: number, q?: string) {
-  return renderView(createElement(ReachOutSection, {
-    searchParams: Promise.resolve({ group: groupId?.toString(), q }),
-  }));
+  return renderView(
+    createElement(ReachOutSection, {
+      searchParams: Promise.resolve({ group: groupId?.toString(), q }),
+    }),
+  );
 }
 
 async function addMemberAndExpectReset(groupId: number, contactId: number) {
@@ -119,9 +137,11 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
     vi.mocked(getDb).mockClear();
 
     try {
-      await expect(render({
-        searchParams: Promise.resolve({ group: "1" }),
-      })).rejects.toBe(prerenderStop);
+      await expect(
+        render({
+          searchParams: Promise.resolve({ group: "1" }),
+        }),
+      ).rejects.toBe(prerenderStop);
       expect(getDb).not.toHaveBeenCalled();
     } finally {
       request.mockReset().mockResolvedValue(undefined);
@@ -176,16 +196,21 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
     ]);
 
     const html = await renderGroupPage(group.id, candidate.name);
-    expect(html).toMatch(/Контакты для добавления[\s\S]*?Find Candidate Separately[\s\S]*?aria-labelledby="members-heading"[\s\S]*?2 контакта[\s\S]*?Counted Member First/);
+    expect(html).toMatch(
+      /Контакты для добавления[\s\S]*?Find Candidate Separately[\s\S]*?aria-labelledby="members-heading"[\s\S]*?2 контакта[\s\S]*?Counted Member First/,
+    );
     expect(html).toContain('aria-label="Очистить поиск участников"');
   });
 
   it("hides phone and email in member rows and keeps them in candidate rows", async () => {
     const group = await seedGroup("Member Details Group");
-    const [member, candidate] = await database.db.insert(contacts).values([
-      { name: "Member With Details", phone: "+70000001001", email: "member@example.com" },
-      { name: "Candidate With Details", phone: "+70000001002", email: "candidate@example.com" },
-    ]).returning();
+    const [member, candidate] = await database.db
+      .insert(contacts)
+      .values([
+        { name: "Member With Details", phone: "+70000001001", email: "member@example.com" },
+        { name: "Candidate With Details", phone: "+70000001002", email: "candidate@example.com" },
+      ])
+      .returning();
     await database.db.insert(contactGroups).values({ contactId: member.id, groupId: group.id });
 
     const html = await renderGroupPage(group.id, candidate.name);
@@ -218,7 +243,11 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
     const member = await seedContact("Renamed Group Member");
     await database.db.insert(contactGroups).values({ contactId: member.id, groupId: group.id });
 
-    const state = await renameGroupAction(group.id, { name: group.name }, groupNameForm(" New name "));
+    const state = await renameGroupAction(
+      group.id,
+      { name: group.name },
+      groupNameForm(" New name "),
+    );
 
     expect(state.error).toBeUndefined();
     expect(await getGroup(group.id)).toEqual({ id: group.id, name: "New name" });
@@ -275,10 +304,13 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
     await addMemberAndExpectReset(group.id, candidate.id);
     await addMemberAndExpectReset(group.id, candidate.id);
     expect(await renderGroupPage(group.id)).toContain(candidate.name);
-    expect((await database.pool.query(
-      "select contact_id from contact_groups where group_id = $1",
-      [group.id],
-    )).rows).toEqual([{ contact_id: candidate.id }]);
+    expect(
+      (
+        await database.pool.query("select contact_id from contact_groups where group_id = $1", [
+          group.id,
+        ])
+      ).rows,
+    ).toEqual([{ contact_id: candidate.id }]);
   });
 
   it("resets member search on add and does not restore the candidate on immediate removal", async () => {
@@ -315,7 +347,9 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
     expect(html).toContain(staying.name);
     expect(await renderGroupPage(other.id)).toContain(member.name);
     expect(await getContact(member.id)).toEqual(member);
-    expect(await getNotes(member.id)).toEqual([expect.objectContaining({ body: "Keep this note" })]);
+    expect(await getNotes(member.id)).toEqual([
+      expect.objectContaining({ body: "Keep this note" }),
+    ]);
   });
 
   it("shows a recoverable empty state after removing the last member", async () => {
@@ -337,8 +371,9 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
     const tennis = await seedGroup("Tennis Club");
     const name = "Two Groups Contact";
 
-    await expect(createContactAction(emptyContactState, contactForm(name, [family.id, tennis.id])))
-      .rejects.toMatchObject({ digest: expect.stringContaining(";/?added=") });
+    await expect(
+      createContactAction(emptyContactState, contactForm(name, [family.id, tennis.id])),
+    ).rejects.toMatchObject({ digest: expect.stringContaining(";/?added=") });
 
     const [contact] = await findContactsByName(name);
     expect(await getContactGroups(contact.id)).toEqual([family, tennis]);
@@ -355,8 +390,9 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
       { contactId: member.id, groupId: second.id },
     ]);
 
-    await expect(updateContactAction(member.id, emptyContactState, contactForm(member.name, [second.id])))
-      .rejects.toMatchObject({ digest: expect.stringContaining(`;/contacts/${member.id};`) });
+    await expect(
+      updateContactAction(member.id, emptyContactState, contactForm(member.name, [second.id])),
+    ).rejects.toMatchObject({ digest: expect.stringContaining(`;/contacts/${member.id};`) });
 
     expect(await getContactGroups(member.id)).toEqual([second]);
     expect(await renderGroupPage(first.id)).not.toContain(member.name);
@@ -367,8 +403,9 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
     const member = await seedContact("Deselect Last Contact");
     await database.db.insert(contactGroups).values({ contactId: member.id, groupId: group.id });
 
-    await expect(updateContactAction(member.id, emptyContactState, contactForm(member.name, [])))
-      .rejects.toMatchObject({ digest: expect.stringContaining(`;/contacts/${member.id};`) });
+    await expect(
+      updateContactAction(member.id, emptyContactState, contactForm(member.name, [])),
+    ).rejects.toMatchObject({ digest: expect.stringContaining(`;/contacts/${member.id};`) });
 
     expect(await getContactGroups(member.id)).toEqual([]);
     expect(await findContactsByName(member.name)).toContainEqual(
@@ -412,13 +449,19 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
   it("can leave the contact form with a draft without submitting any records", async () => {
     const member = await seedContact("Unchanged Contact");
     const groupList = await listGroups();
-    const html = await renderView(createElement(ContactForm, {
-      groups: groupList,
-      contact: {
-        id: member.id,
-        values: { ...emptyContactState.values, name: member.name, newGroupName: "Discarded draft" },
-      },
-    }));
+    const html = await renderView(
+      createElement(ContactForm, {
+        groups: groupList,
+        contact: {
+          id: member.id,
+          values: {
+            ...emptyContactState.values,
+            name: member.name,
+            newGroupName: "Discarded draft",
+          },
+        },
+      }),
+    );
 
     expect(html).toContain('name="newGroupName"');
     expect(html).toContain('value="Discarded draft"');
@@ -431,23 +474,27 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
     const family = await seedGroup("Pill Family");
     const tennis = await seedGroup("Pill Tennis");
     const member = await seedContact("Pill Form Contact");
-    const html = await renderView(createElement(ContactForm, {
-      groups: [family, tennis],
-      contact: {
-        id: member.id,
-        values: {
-          ...emptyContactState.values,
-          name: member.name,
-          groupIds: [String(tennis.id)],
+    const html = await renderView(
+      createElement(ContactForm, {
+        groups: [family, tennis],
+        contact: {
+          id: member.id,
+          values: {
+            ...emptyContactState.values,
+            name: member.name,
+            groupIds: [String(tennis.id)],
+          },
         },
-      },
-    }));
+      }),
+    );
 
     expect(html).not.toContain('type="checkbox"');
     expect(html).not.toContain('name="newGroupName"');
     expect(html).toMatch(/<button[^>]*aria-pressed="true"[^>]*>Pill Tennis<\/button>/);
     expect(html).toMatch(/<button[^>]*aria-pressed="false"[^>]*>Pill Family<\/button>/);
-    expect(html).toMatch(/<button[^>]*aria-expanded="false"[^>]*>[\s\S]*?Добавить группу<\/button>/);
+    expect(html).toMatch(
+      /<button[^>]*aria-expanded="false"[^>]*>[\s\S]*?Добавить группу<\/button>/,
+    );
   });
 
   it("returns a group draft when contact validation fails and writes no group", async () => {
@@ -495,9 +542,11 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
       { contactId: boris.id, groupId: friends.id },
     ]);
 
-    const filtered = await renderView(createElement(ContactList, {
-      searchParams: Promise.resolve({ group: String(tennis.id) }),
-    }));
+    const filtered = await renderView(
+      createElement(ContactList, {
+        searchParams: Promise.resolve({ group: String(tennis.id) }),
+      }),
+    );
     expect(filtered).toContain(anna.name);
     expect(filtered).toContain(tennis.name);
     expect(filtered).toContain(friends.name);
@@ -505,14 +554,18 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
     expect(filtered).not.toContain(boris.name);
     expect(filtered).not.toContain(vera.name);
 
-    const emptyGroup = await renderView(createElement(ContactList, {
-      searchParams: Promise.resolve({ group: String(empty.id) }),
-    }));
+    const emptyGroup = await renderView(
+      createElement(ContactList, {
+        searchParams: Promise.resolve({ group: String(empty.id) }),
+      }),
+    );
     expect(emptyGroup).toContain("В группе пока нет участников");
 
-    const cleared = await renderView(createElement(ContactList, {
-      searchParams: Promise.resolve({}),
-    }));
+    const cleared = await renderView(
+      createElement(ContactList, {
+        searchParams: Promise.resolve({}),
+      }),
+    );
     for (const person of [anna, boris, vera]) expect(cleared).toContain(person.name);
   });
 
@@ -523,12 +576,16 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
       keepInTouchFrequency: "week",
       keepInTouchSetAt: new Date("2020-01-03T12:00:00Z"),
     });
-    const html = await renderView(createElement(ContactsPage, {
-      searchParams: Promise.resolve({}),
-      params: Promise.resolve({}),
-    }));
+    const html = await renderView(
+      createElement(ContactsPage, {
+        searchParams: Promise.resolve({}),
+        params: Promise.resolve({}),
+      }),
+    );
 
-    expect(html).toMatch(/Найти контакт по имени[\s\S]*aria-expanded="false"[^>]*>[\s\S]*?Все группы[\s\S]*?href="\/groups"[^>]*>[\s\S]*?Список групп[\s\S]*?Пора связаться/);
+    expect(html).toMatch(
+      /Найти контакт по имени[\s\S]*aria-expanded="false"[^>]*>[\s\S]*?Все группы[\s\S]*?href="\/groups"[^>]*>[\s\S]*?Список групп[\s\S]*?Пора связаться/,
+    );
     expect(html).not.toContain("Search Panel Tennis");
   });
 
@@ -539,10 +596,13 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
       keepInTouchFrequency: "week" as const,
       keepInTouchSetAt: new Date("2020-01-03T12:00:00Z"),
     };
-    const [selected, outside] = await database.db.insert(contacts).values([
-      { name: "Selected Reminder Contact", ...dueFields },
-      { name: "Outside Reminder Contact", ...dueFields },
-    ]).returning();
+    const [selected, outside] = await database.db
+      .insert(contacts)
+      .values([
+        { name: "Selected Reminder Contact", ...dueFields },
+        { name: "Outside Reminder Contact", ...dueFields },
+      ])
+      .returning();
     await database.db.insert(contactGroups).values([
       { contactId: selected.id, groupId: first.id },
       { contactId: outside.id, groupId: second.id },
@@ -562,11 +622,14 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
 
   it("hides reminders for a group whose only member is not due", async () => {
     const group = await seedGroup("No Due Contact Group");
-    const [outside] = await database.db.insert(contacts).values({
-      name: "Other Group Due Contact",
-      keepInTouchFrequency: "week",
-      keepInTouchSetAt: new Date("2020-01-03T12:00:00Z"),
-    }).returning();
+    const [outside] = await database.db
+      .insert(contacts)
+      .values({
+        name: "Other Group Due Contact",
+        keepInTouchFrequency: "week",
+        keepInTouchSetAt: new Date("2020-01-03T12:00:00Z"),
+      })
+      .returning();
     const member = await seedContact("No Reminder Member");
     await database.db.insert(contactGroups).values({ contactId: member.id, groupId: group.id });
 
@@ -574,29 +637,37 @@ describe.runIf(testPostgresPort > 0)("contact groups", () => {
     expect(await renderReminders(group.id)).toBe("");
   });
 
-  it.each(["new", "edit"] as const)("shows the required-name hint above the groups in the %s form", async (mode) => {
-    const html = await renderView(createElement(ContactForm, {
-      groups: [],
-      contact: mode === "edit"
-        ? { id: 1, values: emptyContactState.values }
-        : undefined,
-    }));
+  it.each(["new", "edit"] as const)(
+    "shows the required-name hint above the groups in the %s form",
+    async (mode) => {
+      const html = await renderView(
+        createElement(ContactForm, {
+          groups: [],
+          contact: mode === "edit" ? { id: 1, values: emptyContactState.values } : undefined,
+        }),
+      );
 
-    expect(html).toMatch(/Обязательно только имя\.[\s\S]*?<legend[^>]*>Группы<\/legend>/);
-  });
+      expect(html).toMatch(/Обязательно только имя\.[\s\S]*?<legend[^>]*>Группы<\/legend>/);
+    },
+  );
 
   it("shows linked group tags above the details on the contact card", async () => {
     const group = await seedGroup("Card Group Tag");
-    const [member] = await database.db.insert(contacts)
+    const [member] = await database.db
+      .insert(contacts)
       .values({ name: "Card Group Member", howWeMet: "Met at tennis" })
       .returning();
     await database.db.insert(contactGroups).values({ contactId: member.id, groupId: group.id });
-    const html = await renderView(createElement(ContactPage, {
-      params: Promise.resolve({ id: String(member.id) }),
-      searchParams: Promise.resolve({}),
-    }));
+    const html = await renderView(
+      createElement(ContactPage, {
+        params: Promise.resolve({ id: String(member.id) }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
 
-    expect(html).toMatch(/<ul[^>]*aria-label="Группы"[^>]*>[\s\S]*?Card Group Tag[\s\S]*?Откуда знакомы/);
+    expect(html).toMatch(
+      /<ul[^>]*aria-label="Группы"[^>]*>[\s\S]*?Card Group Tag[\s\S]*?Откуда знакомы/,
+    );
     expect(html).toContain(`href="/groups/${group.id}"`);
     expect(html).not.toContain("contact-groups-heading");
   });

@@ -1,8 +1,6 @@
 import "server-only";
 
-import {
-  and, asc, desc, eq, exists, inArray, isNotNull, not, sql, type SQL,
-} from "drizzle-orm";
+import { and, asc, desc, eq, exists, inArray, isNotNull, not, sql, type SQL } from "drizzle-orm";
 import { cache } from "react";
 
 import { getDb } from "@/db";
@@ -29,12 +27,7 @@ function belongsToGroup(db: ReturnType<typeof getDb>, groupId: number) {
     db
       .select({ groupId: contactGroups.groupId })
       .from(contactGroups)
-      .where(
-        and(
-          eq(contactGroups.contactId, contacts.id),
-          eq(contactGroups.groupId, groupId),
-        ),
-      ),
+      .where(and(eq(contactGroups.contactId, contacts.id), eq(contactGroups.groupId, groupId))),
   );
 }
 
@@ -49,8 +42,7 @@ export async function findContactsByName(
 
   const normalizedName = sql`translate(lower(${contacts.name}), 'ё', 'е')`;
 
-  const contains = (word: string) =>
-    sql`${normalizedName} like ${`%${escapeLikePattern(word)}%`}`;
+  const contains = (word: string) => sql`${normalizedName} like ${`%${escapeLikePattern(word)}%`}`;
 
   const startsSomeWord = (word: string) => {
     const pattern = escapeLikePattern(word);
@@ -63,9 +55,7 @@ export async function findContactsByName(
   // Names where the search words begin a word go first:
   // "лев" lists Лев and Левин before Королёв.
   const bestMatchesFirst =
-    words.length > 0
-      ? [sql`case when ${and(...words.map(startsSomeWord))} then 0 else 1 end`]
-      : [];
+    words.length > 0 ? [sql`case when ${and(...words.map(startsSomeWord))} then 0 else 1 end`] : [];
 
   try {
     const db = getDb();
@@ -103,25 +93,16 @@ export async function findContactsByName(
   }
 }
 
-export type ContactListItem = Awaited<
-  ReturnType<typeof findContactsByName>
->[number];
+export type ContactListItem = Awaited<ReturnType<typeof findContactsByName>>[number];
 
 export async function countContacts(groupId?: number) {
   const db = getDb();
-  return db.$count(
-    contacts,
-    groupId === undefined ? undefined : belongsToGroup(db, groupId),
-  );
+  return db.$count(contacts, groupId === undefined ? undefined : belongsToGroup(db, groupId));
 }
 
 // Wrapped in cache() so the page and its metadata share one query per request
 export const getContact = cache(async (id: number) => {
-  const [contact] = await getDb()
-    .select()
-    .from(contacts)
-    .where(eq(contacts.id, id))
-    .limit(1);
+  const [contact] = await getDb().select().from(contacts).where(eq(contacts.id, id)).limit(1);
   return contact;
 });
 
@@ -133,10 +114,7 @@ export async function getNotes(contactId: number) {
     .orderBy(desc(notes.createdAt), desc(notes.id));
 }
 
-type ContactDetails = Pick<
-  NewContact,
-  "name" | "about" | "howWeMet" | "phone" | "email"
->;
+type ContactDetails = Pick<NewContact, "name" | "about" | "howWeMet" | "phone" | "email">;
 
 type TransactionCallback = Parameters<ReturnType<typeof getDb>["transaction"]>[0];
 type ContactTransaction = Parameters<TransactionCallback>[0];
@@ -175,21 +153,13 @@ async function replaceContactGroups(
   const selectedIds = [...groupIds, ...created.map((group) => group.id)];
   await tx.delete(contactGroups).where(eq(contactGroups.contactId, contactId));
   if (selectedIds.length) {
-    await tx.insert(contactGroups).values(
-      selectedIds.map((groupId) => ({ contactId, groupId })),
-    );
+    await tx.insert(contactGroups).values(selectedIds.map((groupId) => ({ contactId, groupId })));
   }
 }
 
-export async function createContact(
-  values: ContactDetails,
-  selection: ContactGroupSelection,
-) {
+export async function createContact(values: ContactDetails, selection: ContactGroupSelection) {
   return getDb().transaction(async (tx) => {
-    const [created] = await tx
-      .insert(contacts)
-      .values(values)
-      .returning({ id: contacts.id });
+    const [created] = await tx.insert(contacts).values(values).returning({ id: contacts.id });
     if (selection.groupIds.length || selection.newGroupNames.length) {
       await replaceContactGroups(tx, created.id, selection);
     }
@@ -277,9 +247,7 @@ export async function getKeepInTouchStatus(contactId: number) {
   return status;
 }
 
-export type KeepInTouchStatus = NonNullable<
-  Awaited<ReturnType<typeof getKeepInTouchStatus>>
->;
+export type KeepInTouchStatus = NonNullable<Awaited<ReturnType<typeof getKeepInTouchStatus>>>;
 
 // Entries due today or earlier, from the selected group when supplied.
 export async function findContactsToReachOut(groupId?: number) {
@@ -302,9 +270,7 @@ export async function findContactsToReachOut(groupId?: number) {
     .orderBy(asc(dueDate), asc(contacts.name), asc(contacts.id));
 }
 
-export type ReachOutItem = Awaited<
-  ReturnType<typeof findContactsToReachOut>
->[number];
+export type ReachOutItem = Awaited<ReturnType<typeof findContactsToReachOut>>[number];
 
 // Returns false when there is no contact with this id. null is "Не задано".
 export async function setKeepInTouchFrequency(
@@ -338,9 +304,7 @@ export async function markContacted(contactId: number) {
     // old. and new. in RETURNING need Postgres 18
     .returning({
       markedAt: sql`new.last_contacted_at`.mapWith(contacts.lastContactedAt),
-      previous: sql`old.last_contacted_at`.mapWith(
-        contacts.lastContactedAt,
-      ) as SQL<Date | null>,
+      previous: sql`old.last_contacted_at`.mapWith(contacts.lastContactedAt) as SQL<Date | null>,
     });
   return marked;
 }
@@ -348,20 +312,11 @@ export async function markContacted(contactId: number) {
 // Puts back the mark that markContacted() replaced, but only while the field
 // still holds `markedAt`: a newer mark from another browser stays.
 // Returns false when nothing was put back.
-export async function undoMarkContacted(
-  contactId: number,
-  markedAt: Date,
-  previous: Date | null,
-) {
+export async function undoMarkContacted(contactId: number, markedAt: Date, previous: Date | null) {
   const restored = await getDb()
     .update(contacts)
     .set({ lastContactedAt: previous })
-    .where(
-      and(
-        eq(contacts.id, contactId),
-        eq(contacts.lastContactedAt, markedAt),
-      ),
-    )
+    .where(and(eq(contacts.id, contactId), eq(contacts.lastContactedAt, markedAt)))
     .returning({ id: contacts.id });
   return restored.length > 0;
 }

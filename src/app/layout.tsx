@@ -48,15 +48,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="ru"
-      className={cn("font-sans", interTight.variable, jetBrainsMono.variable)}
-    >
+    <html lang="ru" className={cn("font-sans", interTight.variable, jetBrainsMono.variable)}>
       <body className="min-h-svh antialiased">
         <AppHeader />
-        <div className="mx-auto w-full max-w-3xl px-4 pt-8 pb-16 sm:px-6 sm:pt-10">
-          {children}
-        </div>
+        <div className="mx-auto w-full max-w-3xl px-4 pt-8 pb-16 sm:px-6 sm:pt-10">{children}</div>
       </body>
     </html>
   );

@@ -3,13 +3,7 @@
 import { LoaderCircle, Plus, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  useEffect,
-  useRef,
-  useState,
-  useTransition,
-  type ReactNode,
-} from "react";
+import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 
 import { ContactGroupFilter } from "@/components/contact-group-filter";
 import { buttonVariants } from "@/components/ui/button";
@@ -54,9 +48,7 @@ export function ContactSearch({ groups }: { groups: Group[] }) {
   const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const selectedGroup = groups.some((group) => String(group.id) === groupId)
-    ? groupId
-    : "";
+  const selectedGroup = groups.some((group) => String(group.id) === groupId) ? groupId : "";
 
   // Follow external navigation while keeping newer input during our own requests.
   if (currentHref !== seenHref) {
@@ -90,11 +82,7 @@ export function ContactSearch({ groups }: { groups: Group[] }) {
     };
   }, []);
 
-  function showResults(
-    query: string,
-    group: string,
-    navigation: "replace" | "push",
-  ) {
+  function showResults(query: string, group: string, navigation: "replace" | "push") {
     const href = contactListHref(query, group);
     setRequestedHref(href);
     startTransition(() => {
@@ -165,11 +153,7 @@ export function ContactSearch({ groups }: { groups: Group[] }) {
           )}
         </InputGroup>
       </ContactSearchBar>
-      <ContactGroupFilter
-        groups={groups}
-        value={selectedGroup}
-        onChange={changeGroup}
-      />
+      <ContactGroupFilter groups={groups} value={selectedGroup} onChange={changeGroup} />
     </>
   );
 }

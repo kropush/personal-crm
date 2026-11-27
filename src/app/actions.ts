@@ -39,10 +39,10 @@ import {
 const DELETE_FAILED_MESSAGE =
   "Не удалось удалить. Проверьте, что база данных запущена, и попробуйте ещё раз.";
 const CONTACT_NOT_FOUND_MESSAGE = "Контакт не найден";
-const GROUPS_CHANGED_MESSAGE = "Список групп изменился. Проверьте выбор и сохраните контакт ещё раз.";
+const GROUPS_CHANGED_MESSAGE =
+  "Список групп изменился. Проверьте выбор и сохраните контакт ещё раз.";
 const UNKNOWN_FREQUENCY_MESSAGE = "Не удалось сохранить: такой частоты нет";
-const UNDO_NOT_POSSIBLE_MESSAGE =
-  "Отменить не получилось: отметку уже изменили в другом окне";
+const UNDO_NOT_POSSIBLE_MESSAGE = "Отменить не получилось: отметку уже изменили в другом окне";
 
 function readText(formData: FormData, name: string) {
   const value = formData.get(name);
@@ -50,7 +50,7 @@ function readText(formData: FormData, name: string) {
 }
 
 function readTextList(formData: FormData, name: string) {
-  return formData.getAll(name).map((value) => typeof value === "string" ? value : "");
+  return formData.getAll(name).map((value) => (typeof value === "string" ? value : ""));
 }
 
 function readContactValues(formData: FormData): ContactFormValues {
@@ -78,11 +78,11 @@ function validateContactValues(
   if (groupIds.some((id) => id === null)) {
     return { values, fieldErrors: { groupIds: GROUPS_CHANGED_MESSAGE } };
   }
-  const names = groupNameSchema.array().safeParse(
-    values.newGroupName
-      ? [...values.newGroupNames, values.newGroupName]
-      : values.newGroupNames,
-  );
+  const names = groupNameSchema
+    .array()
+    .safeParse(
+      values.newGroupName ? [...values.newGroupNames, values.newGroupName] : values.newGroupNames,
+    );
   if (!names.success) {
     return { values, fieldErrors: { newGroupName: names.error.issues[0].message } };
   }
@@ -102,7 +102,11 @@ function revalidateNewGroupOptions() {
   revalidatePath("/contacts/[id]/edit", "page");
 }
 
-function handleContactSaveError(error: unknown, message: string, values: ContactFormValues): ContactFormState {
+function handleContactSaveError(
+  error: unknown,
+  message: string,
+  values: ContactFormValues,
+): ContactFormState {
   if (error instanceof ContactGroupsChangedError) {
     refresh();
     return { values, fieldErrors: { groupIds: GROUPS_CHANGED_MESSAGE } };
@@ -185,9 +189,7 @@ export async function updateContactAction(
   redirect(`/contacts/${parsedId.data}`);
 }
 
-export async function deleteContactAction(
-  contactId: number,
-): Promise<DeleteFormState> {
+export async function deleteContactAction(contactId: number): Promise<DeleteFormState> {
   const parsedId = recordIdSchema.safeParse(contactId);
   if (!parsedId.success) {
     return { error: CONTACT_NOT_FOUND_MESSAGE };
@@ -260,10 +262,7 @@ export async function setKeepInTouchFrequencyAction(
 
   let isUpdated: boolean;
   try {
-    isUpdated = await setKeepInTouchFrequency(
-      parsedId.data,
-      parsedFrequency.data,
-    );
+    isUpdated = await setKeepInTouchFrequency(parsedId.data, parsedFrequency.data);
   } catch (error) {
     logError("Failed to set keep-in-touch frequency", error);
     return { error: SAVE_FAILED_MESSAGE };
@@ -280,9 +279,7 @@ export async function setKeepInTouchFrequencyAction(
 
 // Does not refresh the page: the caller decides when. The home page block
 // keeps the row for a few seconds, so that the mark can be undone.
-export async function markContactedAction(
-  contactId: number,
-): Promise<MarkContactedResult> {
+export async function markContactedAction(contactId: number): Promise<MarkContactedResult> {
   const parsedId = recordIdSchema.safeParse(contactId);
   if (!parsedId.success) {
     return { error: CONTACT_NOT_FOUND_MESSAGE };
@@ -325,9 +322,7 @@ export async function undoMarkContactedAction(
     isRestored = await undoMarkContacted(
       parsedId.data,
       new Date(parsedMark.data.markedAt),
-      parsedMark.data.previous === null
-        ? null
-        : new Date(parsedMark.data.previous),
+      parsedMark.data.previous === null ? null : new Date(parsedMark.data.previous),
     );
   } catch (error) {
     logError("Failed to undo the contacted mark", error);

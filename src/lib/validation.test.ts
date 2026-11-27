@@ -6,9 +6,7 @@ describe("contact form validation", () => {
   const emptyDetails = { about: "", howWeMet: "", phone: "", email: "" };
 
   it("rejects a blank contact name", () => {
-    expect(contactSchema.safeParse({ ...emptyDetails, name: "  " }).success).toBe(
-      false,
-    );
+    expect(contactSchema.safeParse({ ...emptyDetails, name: "  " }).success).toBe(false);
   });
 
   it("trims the contact name and keeps optional details empty", () => {

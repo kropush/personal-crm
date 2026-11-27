@@ -10,11 +10,7 @@ import {
 } from "@/lib/group-validation";
 import { createGroup, deleteGroup, renameGroup, setGroupMember } from "@/lib/groups";
 import { logError } from "@/lib/loggable-error";
-import {
-  recordIdSchema,
-  SAVE_FAILED_MESSAGE,
-  type DeleteFormState,
-} from "@/lib/validation";
+import { recordIdSchema, SAVE_FAILED_MESSAGE, type DeleteFormState } from "@/lib/validation";
 
 const GROUP_NOT_FOUND_MESSAGE = "Группа не найдена";
 const CONTACT_NOT_FOUND_MESSAGE = "Контакт не найден";

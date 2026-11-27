@@ -2,14 +2,8 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { ContactList, ContactListSkeleton } from "@/components/contact-list";
-import {
-  ContactSearch,
-  ContactSearchFallback,
-} from "@/components/contact-search";
-import {
-  ReachOutSection,
-  ReachOutSectionSkeleton,
-} from "@/components/reach-out-section";
+import { ContactSearch, ContactSearchFallback } from "@/components/contact-search";
+import { ReachOutSection, ReachOutSectionSkeleton } from "@/components/reach-out-section";
 import { listGroups } from "@/lib/groups";
 
 export default function ContactsPage({ searchParams }: PageProps<"/">) {

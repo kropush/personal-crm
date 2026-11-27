@@ -67,67 +67,65 @@ const backdrop = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" heigh
 
 export default function OpengraphImage() {
   return new ImageResponse(
-    (
+    <div
+      style={{
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        width: "100%",
+        height: "100%",
+        backgroundColor: color.night,
+        color: color.white,
+        fontFamily: "Inter Tight",
+      }}
+    >
+      <img
+        src={`data:image/svg+xml;utf8,${encodeURIComponent(backdrop)}`}
+        alt=""
+        width={width}
+        height={height}
+        style={{ position: "absolute", top: 0, left: 0 }}
+      />
+
+      {/* Logo, as in the header */}
       <div
         style={{
-          position: "relative",
           display: "flex",
-          flexDirection: "column",
-          width: "100%",
-          height: "100%",
-          backgroundColor: color.night,
-          color: color.white,
-          fontFamily: "Inter Tight",
+          alignItems: "center",
+          padding: "56px 64px 0",
+          fontSize: 32,
+          fontWeight: 600,
+          letterSpacing: "-0.02em",
         }}
       >
-        <img
-          src={`data:image/svg+xml;utf8,${encodeURIComponent(backdrop)}`}
-          alt=""
-          width={width}
-          height={height}
-          style={{ position: "absolute", top: 0, left: 0 }}
+        <div
+          style={{
+            width: 36,
+            height: 36,
+            marginRight: 14,
+            borderRadius: 8,
+            backgroundImage: `linear-gradient(to bottom, ${color.indigo}, ${color.accentNum})`,
+          }}
         />
-
-        {/* Logo, as in the header */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            padding: "56px 64px 0",
-            fontSize: 32,
-            fontWeight: 600,
-            letterSpacing: "-0.02em",
-          }}
-        >
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              marginRight: 14,
-              borderRadius: 8,
-              backgroundImage: `linear-gradient(to bottom, ${color.indigo}, ${color.accentNum})`,
-            }}
-          />
-          Личная CRM
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            marginTop: 92,
-            fontSize: 84,
-            fontWeight: 500,
-            lineHeight: 1,
-            letterSpacing: "-0.045em",
-          }}
-        >
-          <span>Помните о людях,</span>
-          <span>которые вам важны.</span>
-        </div>
+        Личная CRM
       </div>
-    ),
+
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          marginTop: 92,
+          fontSize: 84,
+          fontWeight: 500,
+          lineHeight: 1,
+          letterSpacing: "-0.045em",
+        }}
+      >
+        <span>Помните о людях,</span>
+        <span>которые вам важны.</span>
+      </div>
+    </div>,
     {
       ...size,
       fonts: [

@@ -13,11 +13,7 @@ import { parseRecordId } from "@/lib/validation";
 
 type SearchParams = PageProps<"/">["searchParams"];
 
-export async function ContactList({
-  searchParams,
-}: {
-  searchParams: SearchParams;
-}) {
+export async function ContactList({ searchParams }: { searchParams: SearchParams }) {
   await connection();
   const params = await searchParams;
   const query = firstValue(params.q).trim();
@@ -83,11 +79,7 @@ function EmptyState({
     <div className="flex flex-col items-center gap-4 rounded-card border border-dashed px-6 py-14 text-center">
       <div className="flex flex-col gap-1.5">
         <h2 className="text-subtitle font-semibold text-balance">{title}</h2>
-        {description && (
-          <p className="text-sm text-balance text-muted-foreground">
-            {description}
-          </p>
-        )}
+        {description && <p className="text-sm text-balance text-muted-foreground">{description}</p>}
       </div>
       {children}
     </div>

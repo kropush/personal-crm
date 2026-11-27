@@ -30,9 +30,7 @@ export function useContactedMarks({
   onUndone?: (contactId: number) => void;
   onUndoWindowEnd?: (contactId: number) => void;
 }) {
-  const [states, setStates] = useState<Record<number, ContactedMarkState>>(
-    {},
-  );
+  const [states, setStates] = useState<Record<number, ContactedMarkState>>({});
 
   function setState(contactId: number, state: ContactedMarkState) {
     setStates((previous) => ({ ...previous, [contactId]: state }));
@@ -63,12 +61,10 @@ export function useContactedMarks({
   async function markContacted(contactId: number) {
     setState(contactId, { isSaving: true });
 
-    const result = await markContactedAction(contactId).catch(
-      (error: unknown) => {
-        console.error("Failed to send the contacted mark", error);
-        return { error: SAVE_FAILED_MESSAGE };
-      },
-    );
+    const result = await markContactedAction(contactId).catch((error: unknown) => {
+      console.error("Failed to send the contacted mark", error);
+      return { error: SAVE_FAILED_MESSAGE };
+    });
     if (result.error !== undefined) {
       setState(contactId, { isSaving: false, error: result.error });
       return;
@@ -88,14 +84,12 @@ export function useContactedMarks({
     if (!mark) return;
     setState(contactId, { isSaving: true });
 
-    const result = await undoMarkContactedAction(
-      contactId,
-      mark.markedAt,
-      mark.previous,
-    ).catch((error: unknown) => {
-      console.error("Failed to send the undo of the contacted mark", error);
-      return { error: SAVE_FAILED_MESSAGE };
-    });
+    const result = await undoMarkContactedAction(contactId, mark.markedAt, mark.previous).catch(
+      (error: unknown) => {
+        console.error("Failed to send the undo of the contacted mark", error);
+        return { error: SAVE_FAILED_MESSAGE };
+      },
+    );
     if (result.error !== undefined) {
       setState(contactId, { isSaving: false, error: result.error });
       return;
@@ -110,9 +104,7 @@ export function useContactedMarks({
   return {
     getState: (contactId: number) => states[contactId] ?? IDLE,
     // Some contact is being saved or can still be undone
-    isBusy: Object.values(states).some(
-      (state) => state.isSaving || state.mark !== undefined,
-    ),
+    isBusy: Object.values(states).some((state) => state.isSaving || state.mark !== undefined),
     markContacted,
     undo,
   };

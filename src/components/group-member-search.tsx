@@ -49,7 +49,9 @@ export function GroupMemberSearch({
     <div className="mt-3 flex flex-col gap-3 rounded-card border bg-muted p-3 sm:p-4">
       <Form action={path} className="flex items-center gap-2">
         <InputGroup className="h-10 min-w-0 flex-1 rounded-full bg-card shadow-contact">
-          <InputGroupAddon className="pl-3.5"><Search /></InputGroupAddon>
+          <InputGroupAddon className="pl-3.5">
+            <Search />
+          </InputGroupAddon>
           <InputGroupInput
             ref={input}
             name="q"
@@ -85,7 +87,9 @@ export function GroupMemberSearch({
             </InputGroupAddon>
           )}
         </InputGroup>
-        <Button type="submit" variant="outline" size="lg">Найти</Button>
+        <Button type="submit" variant="outline" size="lg">
+          Найти
+        </Button>
       </Form>
       {showResults && children}
     </div>

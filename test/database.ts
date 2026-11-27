@@ -46,6 +46,7 @@ export async function openTestDatabase() {
     host: "127.0.0.1",
     port: testPostgresPort,
     user: "postgres",
+    password: process.env.CRM_TEST_POSTGRES_PASSWORD,
     database: "postgres",
   };
   const admin = new Pool(connection);

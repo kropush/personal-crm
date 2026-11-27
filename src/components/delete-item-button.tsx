@@ -62,12 +62,8 @@ function DeleteItemForm({ action, title, description }: DeleteItemProps) {
     // contents: the dialog lays out the header, error and buttons itself
     <form action={formAction} className="contents">
       <AlertDialogHeader>
-        <AlertDialogTitle className="break-words">
-          {title}
-        </AlertDialogTitle>
-        <AlertDialogDescription>
-          {description}
-        </AlertDialogDescription>
+        <AlertDialogTitle className="break-words">{title}</AlertDialogTitle>
+        <AlertDialogDescription>{description}</AlertDialogDescription>
       </AlertDialogHeader>
 
       {state.error && (

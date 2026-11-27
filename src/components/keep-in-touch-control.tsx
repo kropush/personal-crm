@@ -72,9 +72,7 @@ export function KeepInTouchControl({
   }
 
   const due =
-    status.frequency !== null &&
-    status.dueDate !== null &&
-    status.overdueDays !== null
+    status.frequency !== null && status.dueDate !== null && status.overdueDays !== null
       ? {
           dueDate: status.dueDate,
           overdueDays: status.overdueDays,
@@ -116,10 +114,7 @@ export function KeepInTouchControl({
       ) : (
         due && (
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-            <DueLine
-              {...due}
-              className={cn(isSavingFrequency && "opacity-50")}
-            />
+            <DueLine {...due} className={cn(isSavingFrequency && "opacity-50")} />
 
             <div aria-live="polite">
               {markState.mark ? (
@@ -201,9 +196,7 @@ function DueLine({
               : cn("font-medium", isOverdue ? "text-destructive" : "text-foreground"),
           )}
         >
-          {isAhead
-            ? formatDueDate(dueDate, currentYear)
-            : formatOverdue(overdueDays)}
+          {isAhead ? formatDueDate(dueDate, currentYear) : formatOverdue(overdueDays)}
         </span>
       </span>
     </p>

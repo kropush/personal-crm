@@ -8,13 +8,7 @@ import { useActionState, useEffect, useRef } from "react";
 import { createContactAction, updateContactAction } from "@/app/actions";
 import { ContactGroupFields } from "@/components/contact-group-fields";
 import { Button, buttonVariants } from "@/components/ui/button";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { Group } from "@/db/schema";
@@ -48,9 +42,7 @@ export function ContactForm(props: ContactFormProps) {
 
 function ContactFormFields({ contact, groups }: ContactFormProps) {
   const [state, formAction, isPending] = useActionState(
-    contact
-      ? updateContactAction.bind(null, contact.id)
-      : createContactAction,
+    contact ? updateContactAction.bind(null, contact.id) : createContactAction,
     { values: contact?.values ?? EMPTY_VALUES, fieldErrors: {} },
   );
   const formRef = useRef<HTMLFormElement>(null);
@@ -58,9 +50,7 @@ function ContactFormFields({ contact, groups }: ContactFormProps) {
 
   // After a failed save, put the cursor into the first field that needs fixing
   useEffect(() => {
-    formRef.current
-      ?.querySelector<HTMLElement>("[aria-invalid='true']")
-      ?.focus();
+    formRef.current?.querySelector<HTMLElement>("[aria-invalid='true']")?.focus();
   }, [state]);
 
   return (
@@ -110,9 +100,7 @@ function ContactFormFields({ contact, groups }: ContactFormProps) {
             placeholder="Познакомились на свадьбе у Оли в 2023 году"
             autoComplete="off"
             aria-invalid={Boolean(fieldErrors.howWeMet)}
-            aria-describedby={
-              fieldErrors.howWeMet ? "howWeMet-error" : undefined
-            }
+            aria-describedby={fieldErrors.howWeMet ? "howWeMet-error" : undefined}
           />
           <FieldError id="howWeMet-error">{fieldErrors.howWeMet}</FieldError>
         </Field>

@@ -61,9 +61,7 @@ export function NoteForm({ contactId }: { contactId: number }) {
               Заметка сохранена
             </span>
           ) : (
-            <span className="hidden text-muted-foreground sm:inline">
-              Ctrl + Enter — сохранить
-            </span>
+            <span className="hidden text-muted-foreground sm:inline">Ctrl + Enter — сохранить</span>
           )}
         </p>
       </div>

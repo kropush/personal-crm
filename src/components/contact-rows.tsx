@@ -25,9 +25,7 @@ export function ContactRows({
 }) {
   useEffect(() => {
     if (addedId === null) return;
-    document
-      .getElementById(`contact-${addedId}`)
-      ?.scrollIntoView({ block: "center" });
+    document.getElementById(`contact-${addedId}`)?.scrollIntoView({ block: "center" });
     // Drop ?added= so that reloading the page does not highlight it again
     const url = new URL(window.location.href);
     url.searchParams.delete("added");
@@ -44,7 +42,8 @@ export function ContactRows({
             key={contact.id}
             id={`contact-${contact.id}`}
             className={cn(
-              action && "relative flex items-center gap-2 px-4 py-3 hover:bg-muted has-[:focus-visible]:bg-muted sm:px-5",
+              action &&
+                "relative flex items-center gap-2 px-4 py-3 hover:bg-muted has-[:focus-visible]:bg-muted sm:px-5",
             )}
           >
             <Link
@@ -68,23 +67,14 @@ export function ContactRows({
                   )}
                 </div>
                 {contact.about && (
-                  <div className="truncate text-sm text-muted-foreground">
-                    {contact.about}
-                  </div>
+                  <div className="truncate text-sm text-muted-foreground">{contact.about}</div>
                 )}
-                <GroupTags
-                  groups={contact.groupNames.map((name) => ({ name }))}
-                  className="mt-1"
-                />
+                <GroupTags groups={contact.groupNames.map((name) => ({ name }))} className="mt-1" />
               </div>
               {showContactDetails && (contact.phone || contact.email) && (
                 <div className="hidden max-w-[40%] shrink-0 text-right text-sm text-muted-foreground sm:block">
-                  {contact.phone && (
-                    <div className="truncate">{contact.phone}</div>
-                  )}
-                  {contact.email && (
-                    <div className="truncate">{contact.email}</div>
-                  )}
+                  {contact.phone && <div className="truncate">{contact.phone}</div>}
+                  {contact.email && <div className="truncate">{contact.email}</div>}
                 </div>
               )}
             </Link>
