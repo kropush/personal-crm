@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { countContacts, findContactsByName } from "@/lib/contacts";
 import { getContactFilterGroup } from "@/lib/groups";
 import { contactListHref, firstValue } from "@/lib/search-params";
+import { requireUser } from "@/lib/session";
 import { cn } from "@/lib/utils";
 import { parseRecordId } from "@/lib/validation";
 
@@ -15,14 +16,15 @@ type SearchParams = PageProps<"/">["searchParams"];
 
 export async function ContactList({ searchParams }: { searchParams: SearchParams }) {
   await connection();
+  const { id: ownerId } = await requireUser();
   const params = await searchParams;
   const query = firstValue(params.q).trim();
   const addedId = parseRecordId(firstValue(params.added));
-  const group = await getContactFilterGroup(params.group);
+  const group = await getContactFilterGroup(ownerId, params.group);
 
   const [contacts, total] = await Promise.all([
-    findContactsByName(query, group ? { groupId: group.id } : undefined),
-    countContacts(group?.id),
+    findContactsByName(ownerId, query, group ? { groupId: group.id } : undefined),
+    countContacts(ownerId, group?.id),
   ]);
 
   if (total === 0) {
@@ -30,10 +32,7 @@ export async function ContactList({ searchParams }: { searchParams: SearchParams
       return <EmptyState title="В группе пока нет участников" />;
     }
     return (
-      <EmptyState
-        title="Здесь пока никого нет"
-        description="Добавьте первого человека — он появится в этом списке."
-      >
+      <EmptyState title="Добавь первый контакт">
         <Link href="/contacts/new" className={buttonVariants({ size: "lg" })}>
           Добавить контакт
         </Link>

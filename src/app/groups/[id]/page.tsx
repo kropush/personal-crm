@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { findContactsByName, type ContactListItem } from "@/lib/contacts";
 import { getGroup } from "@/lib/groups";
 import { firstValue } from "@/lib/search-params";
+import { requireUser } from "@/lib/session";
 import { parseRecordId } from "@/lib/validation";
 
 import {
@@ -29,13 +30,14 @@ type GroupPageProps = {
   searchParams: Promise<{ q?: string | string[] }>;
 };
 
-async function loadGroup(params: GroupPageProps["params"]) {
+async function loadGroup(params: GroupPageProps["params"], ownerId: string) {
   const groupId = parseRecordId((await params).id);
-  return groupId === null ? undefined : getGroup(groupId);
+  return groupId === null ? undefined : getGroup(ownerId, groupId);
 }
 
 export async function generateMetadata({ params }: GroupPageProps): Promise<Metadata> {
-  return { title: (await loadGroup(params))?.name ?? "Группа не найдена" };
+  const { id: ownerId } = await requireUser();
+  return { title: (await loadGroup(params, ownerId))?.name ?? "Группа не найдена" };
 }
 
 export default function GroupPage({ params, searchParams }: GroupPageProps) {
@@ -50,13 +52,14 @@ export default function GroupPage({ params, searchParams }: GroupPageProps) {
 }
 
 async function GroupDetails({ params, searchParams }: GroupPageProps) {
-  const group = await loadGroup(params);
+  const { id: ownerId } = await requireUser();
+  const group = await loadGroup(params, ownerId);
   if (!group) notFound();
   const search = (await searchParams).q;
   const query = firstValue(search).trim();
   const [members, candidates] = await Promise.all([
-    findContactsByName("", { groupId: group.id }),
-    query ? findContactsByName(query, { groupId: group.id, exclude: true }) : [],
+    findContactsByName(ownerId, "", { groupId: group.id }),
+    query ? findContactsByName(ownerId, query, { groupId: group.id, exclude: true }) : [],
   ]);
 
   return (

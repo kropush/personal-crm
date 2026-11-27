@@ -5,19 +5,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { findContactsToReachOut } from "@/lib/contacts";
 import { getContactFilterGroup } from "@/lib/groups";
 import { firstValue } from "@/lib/search-params";
+import { requireUser } from "@/lib/session";
 
 type SearchParams = PageProps<"/">["searchParams"];
 
 // The "Пора связаться" block. Not shown while searching or when nobody is due
 export async function ReachOutSection({ searchParams }: { searchParams: SearchParams }) {
   await connection();
+  const { id: ownerId } = await requireUser();
   const params = await searchParams;
   if (firstValue(params.q).trim()) {
     return null;
   }
 
-  const group = await getContactFilterGroup(params.group);
-  const contacts = await findContactsToReachOut(group?.id);
+  const group = await getContactFilterGroup(ownerId, params.group);
+  const contacts = await findContactsToReachOut(ownerId, group?.id);
   if (contacts.length === 0) {
     return null;
   }

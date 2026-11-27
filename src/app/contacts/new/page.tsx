@@ -6,6 +6,7 @@ import { BackLink } from "@/components/back-link";
 import { ContactForm } from "@/components/contact-form";
 import { Skeleton } from "@/components/ui/skeleton";
 import { listGroups } from "@/lib/groups";
+import { requireUser } from "@/lib/session";
 
 export const metadata: Metadata = {
   title: "Новый контакт",
@@ -25,5 +26,6 @@ export default function NewContactPage() {
 
 async function NewContactForm() {
   await connection();
-  return <ContactForm groups={await listGroups()} />;
+  const { id: ownerId } = await requireUser();
+  return <ContactForm groups={await listGroups(ownerId)} />;
 }

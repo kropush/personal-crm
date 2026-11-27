@@ -10,7 +10,6 @@ import {
   ContactGroupsChangedError,
   createContact,
   deleteContact,
-  getContact,
   markContacted,
   setKeepInTouchFrequency,
   undoMarkContacted,
@@ -19,6 +18,7 @@ import {
 } from "@/lib/contacts";
 import { groupNameSchema } from "@/lib/group-validation";
 import { logError } from "@/lib/loggable-error";
+import { requireUser } from "@/lib/session";
 import {
   contactSchema,
   keepInTouchFrequencySchema,
@@ -133,6 +133,7 @@ export async function createContactAction(
   _previousState: ContactFormState,
   formData: FormData,
 ): Promise<ContactFormState> {
+  const { id: ownerId } = await requireUser();
   // Sent back on failure, so the form keeps what the user has typed
   const values = readContactValues(formData);
 
@@ -141,7 +142,7 @@ export async function createContactAction(
 
   let contactId: number;
   try {
-    contactId = await createContact(parsed.details, parsed.selection);
+    contactId = await createContact(ownerId, parsed.details, parsed.selection);
   } catch (error) {
     return handleContactSaveError(error, "Failed to create contact", values);
   }
@@ -160,6 +161,7 @@ export async function updateContactAction(
   _previousState: ContactFormState,
   formData: FormData,
 ): Promise<ContactFormState> {
+  const { id: ownerId } = await requireUser();
   // Sent back on failure, so the form keeps what the user has typed
   const values = readContactValues(formData);
 
@@ -172,7 +174,7 @@ export async function updateContactAction(
 
   let isUpdated: boolean;
   try {
-    isUpdated = await updateContact(parsedId.data, parsed.details, parsed.selection);
+    isUpdated = await updateContact(ownerId, parsedId.data, parsed.details, parsed.selection);
   } catch (error) {
     return handleContactSaveError(error, "Failed to update contact", values);
   }
@@ -190,15 +192,16 @@ export async function updateContactAction(
 }
 
 export async function deleteContactAction(contactId: number): Promise<DeleteFormState> {
+  const { id: ownerId } = await requireUser();
   const parsedId = recordIdSchema.safeParse(contactId);
   if (!parsedId.success) {
     return { error: CONTACT_NOT_FOUND_MESSAGE };
   }
 
-  // A contact already deleted in another browser is not an error:
-  // either way it is gone, and the list is the place to go
   try {
-    await deleteContact(parsedId.data);
+    if (!(await deleteContact(ownerId, parsedId.data))) {
+      return { error: CONTACT_NOT_FOUND_MESSAGE };
+    }
   } catch (error) {
     logError("Failed to delete contact", error);
     return { error: DELETE_FAILED_MESSAGE };
@@ -217,6 +220,7 @@ export async function addNoteAction(
   previousState: NoteFormState,
   formData: FormData,
 ): Promise<NoteFormState> {
+  const { id: ownerId } = await requireUser();
   const body = readText(formData, "body");
   const { savedCount } = previousState;
 
@@ -231,11 +235,9 @@ export async function addNoteAction(
   }
 
   try {
-    const contact = await getContact(parsedId.data);
-    if (!contact) {
+    if (!(await addNote(ownerId, parsedId.data, parsedNote.data.body))) {
       return { body, savedCount, error: CONTACT_NOT_FOUND_MESSAGE };
     }
-    await addNote(parsedId.data, parsedNote.data.body);
   } catch (error) {
     logError("Failed to add note", error);
     return { body, savedCount, error: SAVE_FAILED_MESSAGE };
@@ -251,6 +253,7 @@ export async function setKeepInTouchFrequencyAction(
   contactId: number,
   frequency: KeepInTouchFrequency | null,
 ): Promise<SetKeepInTouchFrequencyResult> {
+  const { id: ownerId } = await requireUser();
   const parsedId = recordIdSchema.safeParse(contactId);
   if (!parsedId.success) {
     return { error: CONTACT_NOT_FOUND_MESSAGE };
@@ -262,7 +265,7 @@ export async function setKeepInTouchFrequencyAction(
 
   let isUpdated: boolean;
   try {
-    isUpdated = await setKeepInTouchFrequency(parsedId.data, parsedFrequency.data);
+    isUpdated = await setKeepInTouchFrequency(ownerId, parsedId.data, parsedFrequency.data);
   } catch (error) {
     logError("Failed to set keep-in-touch frequency", error);
     return { error: SAVE_FAILED_MESSAGE };
@@ -280,6 +283,7 @@ export async function setKeepInTouchFrequencyAction(
 // Does not refresh the page: the caller decides when. The home page block
 // keeps the row for a few seconds, so that the mark can be undone.
 export async function markContactedAction(contactId: number): Promise<MarkContactedResult> {
+  const { id: ownerId } = await requireUser();
   const parsedId = recordIdSchema.safeParse(contactId);
   if (!parsedId.success) {
     return { error: CONTACT_NOT_FOUND_MESSAGE };
@@ -287,7 +291,7 @@ export async function markContactedAction(contactId: number): Promise<MarkContac
 
   let marked: Awaited<ReturnType<typeof markContacted>>;
   try {
-    marked = await markContacted(parsedId.data);
+    marked = await markContacted(ownerId, parsedId.data);
   } catch (error) {
     logError("Failed to mark contact as contacted", error);
     return { error: SAVE_FAILED_MESSAGE };
@@ -308,6 +312,7 @@ export async function undoMarkContactedAction(
   markedAt: string,
   previous: string | null,
 ): Promise<UndoMarkContactedResult> {
+  const { id: ownerId } = await requireUser();
   const parsedId = recordIdSchema.safeParse(contactId);
   if (!parsedId.success) {
     return { error: CONTACT_NOT_FOUND_MESSAGE };
@@ -320,6 +325,7 @@ export async function undoMarkContactedAction(
   let isRestored: boolean;
   try {
     isRestored = await undoMarkContacted(
+      ownerId,
       parsedId.data,
       new Date(parsedMark.data.markedAt),
       parsedMark.data.previous === null ? null : new Date(parsedMark.data.previous),

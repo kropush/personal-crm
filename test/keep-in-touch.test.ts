@@ -2,7 +2,7 @@ import { eq, sql, TransactionRollbackError } from "drizzle-orm";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { contacts, type NewContact, notes } from "@/db/schema";
+import { contacts, type NewContact, notes, user } from "@/db/schema";
 import {
   addNote,
   createContact,
@@ -22,13 +22,15 @@ vi.mock("@/db", () => ({ getDb: () => transaction }));
 type TestDatabase = Awaited<ReturnType<typeof openTestDatabase>>;
 type TestTransaction = Parameters<Parameters<TestDatabase["db"]["transaction"]>[0]>[0];
 
+const ownerId = "reminder-owner";
+
 let database: TestDatabase;
 let transaction: TestTransaction;
 
-async function seedContact(values: Omit<NewContact, "name"> & { name?: string }) {
+async function seedContact(values: Omit<NewContact, "name" | "ownerId"> & { name?: string }) {
   const [contact] = await transaction
     .insert(contacts)
-    .values({ name: "Reminder Contact", ...values })
+    .values({ name: "Reminder Contact", ownerId, ...values })
     .returning();
   return contact.id;
 }
@@ -66,6 +68,9 @@ describe.runIf(testPostgresPort > 0)("keep-in-touch database rules", () => {
   beforeAll(async () => {
     database = await openTestDatabase();
     await migrate(database.db, { migrationsFolder: "./drizzle" });
+    await database.db
+      .insert(user)
+      .values({ id: ownerId, name: "", email: "reminders@example.com" });
   });
 
   afterAll(async () => {
@@ -76,16 +81,17 @@ describe.runIf(testPostgresPort > 0)("keep-in-touch database rules", () => {
     "starts a new contact with no frequency, deadline or reminder",
     withDatabase(async () => {
       const id = await createContact(
+        ownerId,
         { name: "New Contact", about: null, howWeMet: null, phone: null, email: null },
         { groupIds: [], newGroupNames: [] },
       );
 
-      expect(await getKeepInTouchStatus(id)).toMatchObject({
+      expect(await getKeepInTouchStatus(ownerId, id)).toMatchObject({
         frequency: null,
         dueDate: null,
         overdueDays: null,
       });
-      expect(await findContactsToReachOut()).toEqual([]);
+      expect(await findContactsToReachOut(ownerId)).toEqual([]);
     }),
   );
 
@@ -105,7 +111,7 @@ describe.runIf(testPostgresPort > 0)("keep-in-touch database rules", () => {
           keepInTouchSetAt: new Date(selectedAt),
         });
 
-        expect(await getKeepInTouchStatus(id)).toMatchObject({ frequency, dueDate });
+        expect(await getKeepInTouchStatus(ownerId, id)).toMatchObject({ frequency, dueDate });
       })(),
   );
 
@@ -116,27 +122,27 @@ describe.runIf(testPostgresPort > 0)("keep-in-touch database rules", () => {
         keepInTouchFrequency: "month",
         keepInTouchSetAt: day(-60),
       });
-      const originalStatus = await getKeepInTouchStatus(id);
-      expect(await findContactsToReachOut()).toMatchObject([{ id }]);
+      const originalStatus = await getKeepInTouchStatus(ownerId, id);
+      expect(await findContactsToReachOut(ownerId)).toMatchObject([{ id }]);
 
-      expect(await setKeepInTouchFrequency(id, "month")).toBe(true);
-      expect(await getKeepInTouchStatus(id)).toEqual(originalStatus);
+      expect(await setKeepInTouchFrequency(ownerId, id, "month")).toBe(true);
+      expect(await getKeepInTouchStatus(ownerId, id)).toEqual(originalStatus);
 
-      expect(await setKeepInTouchFrequency(id, "quarter")).toBe(true);
+      expect(await setKeepInTouchFrequency(ownerId, id, "quarter")).toBe(true);
       const expectedQuarter = day(0);
       expectedQuarter.setUTCDate(1);
       expectedQuarter.setUTCMonth(expectedQuarter.getUTCMonth() + 3);
       const endOfMonth = new Date(expectedQuarter);
       endOfMonth.setUTCMonth(endOfMonth.getUTCMonth() + 1, 0);
       expectedQuarter.setUTCDate(Math.min(day(0).getUTCDate(), endOfMonth.getUTCDate()));
-      expect(await getKeepInTouchStatus(id)).toMatchObject({
+      expect(await getKeepInTouchStatus(ownerId, id)).toMatchObject({
         frequency: "quarter",
         dueDate: calendarDate(expectedQuarter),
       });
-      expect(await findContactsToReachOut()).toEqual([]);
+      expect(await findContactsToReachOut(ownerId)).toEqual([]);
 
-      expect(await setKeepInTouchFrequency(id, null)).toBe(true);
-      expect(await getKeepInTouchStatus(id)).toMatchObject({
+      expect(await setKeepInTouchFrequency(ownerId, id, null)).toBe(true);
+      expect(await getKeepInTouchStatus(ownerId, id)).toMatchObject({
         frequency: null,
         dueDate: null,
         overdueDays: null,
@@ -155,13 +161,13 @@ describe.runIf(testPostgresPort > 0)("keep-in-touch database rules", () => {
         { contactId: id, body: "Older note inserted later", createdAt: day(-20) },
       ]);
 
-      await setKeepInTouchFrequency(id, "week");
+      await setKeepInTouchFrequency(ownerId, id, "week");
 
-      expect(await getKeepInTouchStatus(id)).toMatchObject({
+      expect(await getKeepInTouchStatus(ownerId, id)).toMatchObject({
         dueDate: calendarDate(day(4)),
         overdueDays: -4,
       });
-      expect(await findContactsToReachOut()).toEqual([]);
+      expect(await findContactsToReachOut(ownerId)).toEqual([]);
     }),
   );
 
@@ -179,7 +185,7 @@ describe.runIf(testPostgresPort > 0)("keep-in-touch database rules", () => {
         createdAt: day(-20),
       });
 
-      expect(await getKeepInTouchStatus(id)).toMatchObject({
+      expect(await getKeepInTouchStatus(ownerId, id)).toMatchObject({
         dueDate: calendarDate(day(4)),
         overdueDays: -4,
       });
@@ -195,18 +201,18 @@ describe.runIf(testPostgresPort > 0)("keep-in-touch database rules", () => {
         body: "Conversation before the frequency change",
         createdAt: day(-18),
       });
-      expect(await findContactsToReachOut()).toEqual([]);
+      expect(await findContactsToReachOut(ownerId)).toEqual([]);
 
-      await setKeepInTouchFrequency(id, "week");
-      expect(await getKeepInTouchStatus(id)).toMatchObject({
+      await setKeepInTouchFrequency(ownerId, id, "week");
+      expect(await getKeepInTouchStatus(ownerId, id)).toMatchObject({
         dueDate: calendarDate(day(-11)),
         overdueDays: 11,
       });
-      expect(await findContactsToReachOut()).toMatchObject([{ id, overdueDays: 11 }]);
+      expect(await findContactsToReachOut(ownerId)).toMatchObject([{ id, overdueDays: 11 }]);
 
-      await setKeepInTouchFrequency(id, null);
-      expect(await getKeepInTouchStatus(id)).toMatchObject({ dueDate: null });
-      expect(await findContactsToReachOut()).toEqual([]);
+      await setKeepInTouchFrequency(ownerId, id, null);
+      expect(await getKeepInTouchStatus(ownerId, id)).toMatchObject({ dueDate: null });
+      expect(await findContactsToReachOut(ownerId)).toEqual([]);
     }),
   );
 
@@ -222,12 +228,12 @@ describe.runIf(testPostgresPort > 0)("keep-in-touch database rules", () => {
       await transaction
         .insert(notes)
         .values({ ...note, createdAt: new Date("2026-10-28T20:59:00Z") });
-      expect(await getKeepInTouchStatus(id)).toMatchObject({ dueDate: "2026-11-04" });
+      expect(await getKeepInTouchStatus(ownerId, id)).toMatchObject({ dueDate: "2026-11-04" });
 
       await transaction
         .insert(notes)
         .values({ ...note, createdAt: new Date("2026-10-28T21:30:00Z") });
-      expect(await getKeepInTouchStatus(id)).toMatchObject({ dueDate: "2026-11-05" });
+      expect(await getKeepInTouchStatus(ownerId, id)).toMatchObject({ dueDate: "2026-11-05" });
     }),
   );
 
@@ -253,7 +259,7 @@ describe.runIf(testPostgresPort > 0)("keep-in-touch database rules", () => {
           body: "Conversation",
           createdAt: day(-noteDaysAgo),
         });
-        expect(await getKeepInTouchStatus(id)).toMatchObject({
+        expect(await getKeepInTouchStatus(ownerId, id)).toMatchObject({
           dueDate: calendarDate(day(-overdueDays)),
           overdueDays,
         });
@@ -261,7 +267,7 @@ describe.runIf(testPostgresPort > 0)("keep-in-touch database rules", () => {
       await seedContact({ name: "No Frequency" });
 
       expect(
-        (await findContactsToReachOut()).map(({ name, overdueDays }) => [name, overdueDays]),
+        (await findContactsToReachOut(ownerId)).map(({ name, overdueDays }) => [name, overdueDays]),
       ).toEqual([
         ["Anna", 40],
         ["Alina", 3],
@@ -280,18 +286,25 @@ describe.runIf(testPostgresPort > 0)("keep-in-touch database rules", () => {
         keepInTouchSetAt: day(-8),
       });
       const unset = await seedContact({ name: "No Schedule" });
-      expect(await findContactsToReachOut()).toMatchObject([{ id: overdue, overdueDays: 1 }]);
+      expect(await findContactsToReachOut(ownerId)).toMatchObject([
+        { id: overdue, overdueDays: 1 },
+      ]);
 
-      await addNote(overdue, "New conversation");
-      await addNote(unset, "Conversation without a schedule");
+      await addNote(ownerId, overdue, "New conversation");
+      await addNote(ownerId, unset, "Conversation without a schedule");
 
-      expect(await getKeepInTouchStatus(overdue)).toMatchObject({
+      expect(await getKeepInTouchStatus(ownerId, overdue)).toMatchObject({
         dueDate: calendarDate(day(7)),
         overdueDays: -7,
       });
-      expect(await getKeepInTouchStatus(unset)).toMatchObject({ frequency: null, dueDate: null });
-      expect(await getNotes(unset)).toMatchObject([{ body: "Conversation without a schedule" }]);
-      expect(await findContactsToReachOut()).toEqual([]);
+      expect(await getKeepInTouchStatus(ownerId, unset)).toMatchObject({
+        frequency: null,
+        dueDate: null,
+      });
+      expect(await getNotes(ownerId, unset)).toMatchObject([
+        { body: "Conversation without a schedule" },
+      ]);
+      expect(await findContactsToReachOut(ownerId)).toEqual([]);
     }),
   );
 
@@ -314,21 +327,21 @@ describe.runIf(testPostgresPort > 0)("keep-in-touch database rules", () => {
           body: "Previous conversation",
           createdAt: day(noteOffset),
         });
-        const originalStatus = await getKeepInTouchStatus(id);
-        const originalNotes = await getNotes(id);
+        const originalStatus = await getKeepInTouchStatus(ownerId, id);
+        const originalNotes = await getNotes(ownerId, id);
         expect(originalStatus?.overdueDays).toBe(originalOverdue);
 
-        const mark = await markContacted(id);
+        const mark = await markContacted(ownerId, id);
         expect(mark.previous).toEqual(previous);
-        expect(await getKeepInTouchStatus(id)).toMatchObject({
+        expect(await getKeepInTouchStatus(ownerId, id)).toMatchObject({
           dueDate: calendarDate(day(7)),
           overdueDays: -7,
         });
-        expect(await getNotes(id)).toEqual(originalNotes);
-        expect(await findContactsToReachOut()).toEqual([]);
+        expect(await getNotes(ownerId, id)).toEqual(originalNotes);
+        expect(await findContactsToReachOut(ownerId)).toEqual([]);
 
-        expect(await undoMarkContacted(id, mark.markedAt, mark.previous)).toBe(true);
-        expect(await getKeepInTouchStatus(id)).toEqual(originalStatus);
+        expect(await undoMarkContacted(ownerId, id, mark.markedAt, mark.previous)).toBe(true);
+        expect(await getKeepInTouchStatus(ownerId, id)).toEqual(originalStatus);
       })(),
   );
 
@@ -336,14 +349,14 @@ describe.runIf(testPostgresPort > 0)("keep-in-touch database rules", () => {
     "keeps a newer contacted mark when asked to undo an older one",
     withDatabase(async (day) => {
       const id = await seedContact({ keepInTouchFrequency: "week", keepInTouchSetAt: day(-15) });
-      const mark = await markContacted(id);
+      const mark = await markContacted(ownerId, id);
       const newerMark = new Date(mark.markedAt.getTime() + 1);
       await transaction
         .update(contacts)
         .set({ lastContactedAt: newerMark })
         .where(eq(contacts.id, id));
 
-      expect(await undoMarkContacted(id, mark.markedAt, mark.previous)).toBe(false);
+      expect(await undoMarkContacted(ownerId, id, mark.markedAt, mark.previous)).toBe(false);
       const [contact] = await transaction.select().from(contacts).where(eq(contacts.id, id));
       expect(contact.lastContactedAt).toEqual(newerMark);
     }),

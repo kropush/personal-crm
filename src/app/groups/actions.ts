@@ -10,6 +10,7 @@ import {
 } from "@/lib/group-validation";
 import { createGroup, deleteGroup, renameGroup, setGroupMember } from "@/lib/groups";
 import { logError } from "@/lib/loggable-error";
+import { requireUser } from "@/lib/session";
 import { recordIdSchema, SAVE_FAILED_MESSAGE, type DeleteFormState } from "@/lib/validation";
 
 const GROUP_NOT_FOUND_MESSAGE = "Группа не найдена";
@@ -35,12 +36,13 @@ export async function createGroupAction(
   _previousState: GroupFormState,
   formData: FormData,
 ): Promise<GroupFormState> {
+  const { id: ownerId } = await requireUser();
   const name = readGroupName(formData);
   const parsed = groupNameSchema.safeParse(name);
   if (!parsed.success) return { name, error: parsed.error.issues[0].message };
 
   try {
-    await createGroup(parsed.data);
+    await createGroup(ownerId, parsed.data);
   } catch (error) {
     logError("Failed to create group", error);
     return { name, error: SAVE_FAILED_MESSAGE };
@@ -55,6 +57,7 @@ export async function renameGroupAction(
   _previousState: GroupFormState,
   formData: FormData,
 ): Promise<GroupFormState> {
+  const { id: ownerId } = await requireUser();
   const name = readGroupName(formData);
   if (!recordIdSchema.safeParse(groupId).success) {
     return { name, error: GROUP_NOT_FOUND_MESSAGE };
@@ -63,7 +66,7 @@ export async function renameGroupAction(
   if (!parsed.success) return { name, error: parsed.error.issues[0].message };
 
   try {
-    if (!(await renameGroup(groupId, parsed.data))) {
+    if (!(await renameGroup(ownerId, groupId, parsed.data))) {
       return { name, error: GROUP_NOT_FOUND_MESSAGE };
     }
   } catch (error) {
@@ -80,6 +83,7 @@ export async function deleteGroupAction(
   _previousState: DeleteFormState,
   formData: FormData,
 ): Promise<DeleteFormState> {
+  const { id: ownerId } = await requireUser();
   if (formData.get("confirmation") !== "delete") {
     return { error: "Подтвердите удаление группы" };
   }
@@ -88,7 +92,9 @@ export async function deleteGroupAction(
   }
 
   try {
-    await deleteGroup(groupId);
+    if (!(await deleteGroup(ownerId, groupId))) {
+      return { error: GROUP_NOT_FOUND_MESSAGE };
+    }
   } catch (error) {
     logError("Failed to delete group", error);
     return { error: "Не удалось удалить группу. Попробуйте ещё раз." };
@@ -121,6 +127,7 @@ async function updateGroupMember(
   contactId: number,
   isMember: boolean,
 ): Promise<GroupMembershipState> {
+  const { id: ownerId } = await requireUser();
   if (!recordIdSchema.safeParse(groupId).success) {
     return { error: GROUP_NOT_FOUND_MESSAGE };
   }
@@ -129,9 +136,9 @@ async function updateGroupMember(
   }
 
   try {
-    if (!(await setGroupMember(groupId, contactId, isMember))) {
-      return { error: CONTACT_NOT_FOUND_MESSAGE };
-    }
+    const result = await setGroupMember(ownerId, groupId, contactId, isMember);
+    if (result === "group-not-found") return { error: GROUP_NOT_FOUND_MESSAGE };
+    if (result === "contact-not-found") return { error: CONTACT_NOT_FOUND_MESSAGE };
   } catch (error) {
     logError("Failed to update group membership", error);
     return { error: SAVE_FAILED_MESSAGE };

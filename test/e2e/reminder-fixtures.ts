@@ -12,8 +12,10 @@ import {
   type NewContact,
 } from "../../src/db/schema";
 
+import { e2eOwner } from "./fixtures";
+
 type ReminderData = {
-  addContacts(values: NewContact[]): Promise<Contact[]>;
+  addContacts(values: Omit<NewContact, "ownerId">[]): Promise<Contact[]>;
   addGroup(name: string, members: Contact[]): Promise<void>;
 };
 
@@ -27,16 +29,26 @@ export const test = base.extend<{ reminderData: ReminderData }>({
     try {
       await runTest({
         async addContacts(values) {
-          const added = await db.insert(contacts).values(values).returning();
+          const added = await db
+            .insert(contacts)
+            .values(values.map((value) => ({ ...value, ownerId: e2eOwner.id })))
+            .returning();
           contactIds.push(...added.map(({ id }) => id));
           return added;
         },
         async addGroup(name, members) {
-          const [group] = await db.insert(groups).values({ name }).returning();
+          const [group] = await db
+            .insert(groups)
+            .values({ name, ownerId: e2eOwner.id })
+            .returning();
           groupIds.push(group.id);
-          await db
-            .insert(contactGroups)
-            .values(members.map((contact) => ({ contactId: contact.id, groupId: group.id })));
+          await db.insert(contactGroups).values(
+            members.map((contact) => ({
+              contactId: contact.id,
+              groupId: group.id,
+              ownerId: e2eOwner.id,
+            })),
+          );
         },
       });
     } finally {

@@ -1,7 +1,22 @@
-import { expect, firefox, type Page } from "@playwright/test";
+import { expect, firefox, type BrowserContext, type Page } from "@playwright/test";
 
-import { existingContactNames } from "./fixtures";
+import { e2eOwner, existingContactNames } from "./fixtures";
+import { login } from "./login-fixtures";
 import { test } from "./reminder-fixtures";
+
+let ownerStorageState: Awaited<ReturnType<BrowserContext["storageState"]>>;
+
+test.beforeAll(async ({ browser, baseURL }) => {
+  const page = await browser.newPage({ baseURL });
+  try {
+    await login(page, e2eOwner.email);
+    ownerStorageState = await page.context().storageState();
+  } finally {
+    await page.close();
+  }
+});
+
+test.use({ storageState: async ({}, setStorageState) => setStorageState(ownerStorageState) });
 
 function contactList(page: Page) {
   return page.getByRole("region", { name: "Список контактов" });
@@ -85,7 +100,7 @@ test("creates and finds a contact and shares its frequency and note across brows
       const otherList = contactList(otherPage);
       const names = [...existingContactNames, name];
 
-      await otherPage.goto("/");
+      await login(otherPage, `  ${e2eOwner.email.toUpperCase()}  `);
       await expect(otherList.getByRole("link")).toHaveCount(names.length);
       for (const contactName of names) {
         await expect(otherList.getByRole("link", { name: contactName, exact: true })).toBeVisible();
@@ -286,6 +301,7 @@ test("shows the oldest five reminders, expands, and applies search and group fil
   await expect(block.getByRole("button", { name: /Показать всех/ })).toHaveCount(0);
 
   await filter.click();
+  await page.getByRole("searchbox", { name: "Найти группу" }).fill("Five");
   await page.getByRole("button", { name: "Five Reminder Group", exact: true }).click();
   await expect(block.getByRole("heading")).toHaveText("Пора связаться · 5");
   await expect(rows).toHaveCount(5);

@@ -12,6 +12,8 @@ vi.mock("@/lib/contacts", () => ({
 }));
 vi.mock("@/lib/loggable-error", () => ({ logError: vi.fn() }));
 
+vi.mock("@/lib/session", () => ({ requireUser: async () => ({ id: "reminder-owner" }) }));
+
 describe("keep-in-touch save failures", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -24,7 +26,7 @@ describe("keep-in-touch save failures", () => {
     await expect(setKeepInTouchFrequencyAction(42, "month")).resolves.toEqual({
       error: expect.stringContaining("Не удалось сохранить"),
     });
-    expect(setKeepInTouchFrequency).toHaveBeenCalledWith(42, "month");
+    expect(setKeepInTouchFrequency).toHaveBeenCalledWith("reminder-owner", 42, "month");
     expect(logError).toHaveBeenCalledWith(expect.any(String), failure);
     expect(refresh).not.toHaveBeenCalled();
     expect(revalidatePath).not.toHaveBeenCalled();
@@ -37,7 +39,7 @@ describe("keep-in-touch save failures", () => {
     await expect(markContactedAction(42)).resolves.toEqual({
       error: expect.stringContaining("Не удалось сохранить"),
     });
-    expect(markContacted).toHaveBeenCalledWith(42);
+    expect(markContacted).toHaveBeenCalledWith("reminder-owner", 42);
     expect(logError).toHaveBeenCalledWith(expect.any(String), failure);
     expect(refresh).not.toHaveBeenCalled();
     expect(revalidatePath).not.toHaveBeenCalled();

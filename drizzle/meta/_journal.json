@@ -22,6 +22,13 @@
       "when": 1795597514666,
       "tag": "0002_contact_groups",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795813601556,
+      "tag": "0003_login",
+      "breakpoints": true
     }
   ]
 }

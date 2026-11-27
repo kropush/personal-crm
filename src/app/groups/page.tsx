@@ -8,6 +8,7 @@ import { BackLink } from "@/components/back-link";
 import { GroupNameForm } from "@/components/group-name-form";
 import { Skeleton } from "@/components/ui/skeleton";
 import { listGroups } from "@/lib/groups";
+import { requireUser } from "@/lib/session";
 
 import { createGroupAction } from "./actions";
 
@@ -27,7 +28,8 @@ export default function GroupsPage() {
 
 async function GroupList() {
   await connection();
-  const groups = await listGroups();
+  const { id: ownerId } = await requireUser();
+  const groups = await listGroups(ownerId);
 
   if (groups.length === 0) {
     return (

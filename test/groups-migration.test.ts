@@ -1,4 +1,3 @@
-import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { expect, it } from "vitest";
 
 import { migrateThrough, openTestDatabase, testPostgresPort } from "./database";
@@ -24,7 +23,7 @@ it.runIf(testPostgresPort > 0)(
         [seededContacts.rows[0].id, "Played tennis"],
       );
 
-      await migrate(db, { migrationsFolder: "./drizzle" });
+      await migrateThrough(db, "0002_contact_groups");
 
       expect((await pool.query("SELECT * FROM contacts ORDER BY id")).rows).toEqual(
         seededContacts.rows,

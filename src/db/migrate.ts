@@ -2,21 +2,19 @@
 //
 // On the server it runs in a one-off container from the app image before the
 // new app version starts (see deploy/deploy.sh). Locally `pnpm db:migrate`
-// does the same through drizzle-kit; both keep track of applied migrations in
-// the same drizzle.__drizzle_migrations table.
+// uses the same script.
 
-import { drizzle } from "drizzle-orm/node-postgres";
-import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";
 
 import { getDatabaseConfig, loadEnvFileIfPresent } from "./config";
+import { migrateDatabase } from "./migrations";
 
 async function main() {
   loadEnvFileIfPresent();
 
   const pool = new Pool(getDatabaseConfig());
   try {
-    await migrate(drizzle({ client: pool }), { migrationsFolder: "./drizzle" });
+    await migrateDatabase(pool, process.env.CRM_OWNER_EMAIL);
     console.log("Migrations applied: every migration from ./drizzle is in the database.");
   } finally {
     await pool.end();

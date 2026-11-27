@@ -1,6 +1,18 @@
 import "server-only";
 
-import { and, asc, desc, eq, exists, inArray, isNotNull, not, sql, type SQL } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  exists,
+  getTableColumns,
+  inArray,
+  isNotNull,
+  not,
+  sql,
+  type SQL,
+} from "drizzle-orm";
 import { cache } from "react";
 
 import { getDb } from "@/db";
@@ -22,16 +34,27 @@ function escapeLikePattern(value: string) {
   return value.replace(/[\\%_]/g, "\\$&");
 }
 
-function belongsToGroup(db: ReturnType<typeof getDb>, groupId: number) {
+function ownedContact(ownerId: string, id: number) {
+  return and(eq(contacts.ownerId, ownerId), eq(contacts.id, id));
+}
+
+function belongsToGroup(db: ReturnType<typeof getDb>, ownerId: string, groupId: number) {
   return exists(
     db
       .select({ groupId: contactGroups.groupId })
       .from(contactGroups)
-      .where(and(eq(contactGroups.contactId, contacts.id), eq(contactGroups.groupId, groupId))),
+      .where(
+        and(
+          eq(contactGroups.ownerId, ownerId),
+          eq(contactGroups.contactId, contacts.id),
+          eq(contactGroups.groupId, groupId),
+        ),
+      ),
   );
 }
 
 export async function findContactsByName(
+  ownerId: string,
   search: string,
   membership?: { groupId: number; exclude?: boolean },
 ) {
@@ -61,7 +84,7 @@ export async function findContactsByName(
     const db = getDb();
     let membershipCondition;
     if (membership) {
-      const inGroup = belongsToGroup(db, membership.groupId);
+      const inGroup = belongsToGroup(db, ownerId, membership.groupId);
       membershipCondition = membership.exclude ? not(inGroup) : inGroup;
     }
 
@@ -69,7 +92,7 @@ export async function findContactsByName(
       .select({ name: groups.name })
       .from(contactGroups)
       .innerJoin(groups, eq(contactGroups.groupId, groups.id))
-      .where(eq(contactGroups.contactId, contacts.id))
+      .where(and(eq(contactGroups.ownerId, ownerId), eq(contactGroups.contactId, contacts.id)))
       .orderBy(asc(groups.name), asc(groups.id));
 
     return await db
@@ -82,7 +105,7 @@ export async function findContactsByName(
         groupNames: sql<string[]>`array(${groupNames})`,
       })
       .from(contacts)
-      .where(and(matchesEveryWord, membershipCondition))
+      .where(and(eq(contacts.ownerId, ownerId), matchesEveryWord, membershipCondition))
       .orderBy(...bestMatchesFirst, asc(contacts.name), asc(contacts.id));
   } catch (error) {
     // Next.js logs an error thrown while rendering a page. The original one
@@ -95,21 +118,28 @@ export async function findContactsByName(
 
 export type ContactListItem = Awaited<ReturnType<typeof findContactsByName>>[number];
 
-export async function countContacts(groupId?: number) {
+export async function countContacts(ownerId: string, groupId?: number) {
   const db = getDb();
-  return db.$count(contacts, groupId === undefined ? undefined : belongsToGroup(db, groupId));
+  return db.$count(
+    contacts,
+    and(
+      eq(contacts.ownerId, ownerId),
+      groupId === undefined ? undefined : belongsToGroup(db, ownerId, groupId),
+    ),
+  );
 }
 
 // Wrapped in cache() so the page and its metadata share one query per request
-export const getContact = cache(async (id: number) => {
-  const [contact] = await getDb().select().from(contacts).where(eq(contacts.id, id)).limit(1);
+export const getContact = cache(async (ownerId: string, id: number) => {
+  const [contact] = await getDb().select().from(contacts).where(ownedContact(ownerId, id)).limit(1);
   return contact;
 });
 
-export async function getNotes(contactId: number) {
+export async function getNotes(ownerId: string, contactId: number) {
   return getDb()
-    .select()
+    .select(getTableColumns(notes))
     .from(notes)
+    .innerJoin(contacts, and(eq(notes.contactId, contacts.id), eq(contacts.ownerId, ownerId)))
     .where(eq(notes.contactId, contactId))
     .orderBy(desc(notes.createdAt), desc(notes.id));
 }
@@ -128,6 +158,7 @@ export class ContactGroupsChangedError extends Error {}
 
 async function replaceContactGroups(
   tx: ContactTransaction,
+  ownerId: string,
   contactId: number,
   { groupIds, newGroupNames }: ContactGroupSelection,
 ) {
@@ -136,7 +167,7 @@ async function replaceContactGroups(
     const selected = await tx
       .select({ id: groups.id })
       .from(groups)
-      .where(inArray(groups.id, groupIds))
+      .where(and(eq(groups.ownerId, ownerId), inArray(groups.id, groupIds)))
       .orderBy(asc(groups.id))
       .for("key share");
     if (selected.length !== groupIds.length) {
@@ -147,21 +178,32 @@ async function replaceContactGroups(
   const created = newGroupNames.length
     ? await tx
         .insert(groups)
-        .values(newGroupNames.map((name) => ({ name })))
+        .values(newGroupNames.map((name) => ({ name, ownerId })))
         .returning({ id: groups.id })
     : [];
   const selectedIds = [...groupIds, ...created.map((group) => group.id)];
-  await tx.delete(contactGroups).where(eq(contactGroups.contactId, contactId));
+  await tx
+    .delete(contactGroups)
+    .where(and(eq(contactGroups.ownerId, ownerId), eq(contactGroups.contactId, contactId)));
   if (selectedIds.length) {
-    await tx.insert(contactGroups).values(selectedIds.map((groupId) => ({ contactId, groupId })));
+    await tx
+      .insert(contactGroups)
+      .values(selectedIds.map((groupId) => ({ contactId, groupId, ownerId })));
   }
 }
 
-export async function createContact(values: ContactDetails, selection: ContactGroupSelection) {
+export async function createContact(
+  ownerId: string,
+  values: ContactDetails,
+  selection: ContactGroupSelection,
+) {
   return getDb().transaction(async (tx) => {
-    const [created] = await tx.insert(contacts).values(values).returning({ id: contacts.id });
+    const [created] = await tx
+      .insert(contacts)
+      .values({ ...values, ownerId })
+      .returning({ id: contacts.id });
     if (selection.groupIds.length || selection.newGroupNames.length) {
-      await replaceContactGroups(tx, created.id, selection);
+      await replaceContactGroups(tx, ownerId, created.id, selection);
     }
     return created.id;
   });
@@ -169,6 +211,7 @@ export async function createContact(values: ContactDetails, selection: ContactGr
 
 // Returns false when there is no contact with this id
 export async function updateContact(
+  ownerId: string,
   id: number,
   values: ContactDetails,
   selection: ContactGroupSelection,
@@ -178,22 +221,35 @@ export async function updateContact(
     const [updated] = await tx
       .update(contacts)
       .set(values)
-      .where(eq(contacts.id, id))
+      .where(ownedContact(ownerId, id))
       .returning({ id: contacts.id });
     if (!updated) return false;
 
-    await replaceContactGroups(tx, id, selection);
+    await replaceContactGroups(tx, ownerId, id, selection);
     return true;
   });
 }
 
 // Its notes are deleted too: the foreign key cascades
-export async function deleteContact(id: number) {
-  await getDb().delete(contacts).where(eq(contacts.id, id));
+export async function deleteContact(ownerId: string, id: number) {
+  const [deleted] = await getDb()
+    .delete(contacts)
+    .where(ownedContact(ownerId, id))
+    .returning({ id: contacts.id });
+  return Boolean(deleted);
 }
 
-export async function addNote(contactId: number, body: string) {
-  await getDb().insert(notes).values({ contactId, body });
+export async function addNote(ownerId: string, contactId: number, body: string) {
+  return getDb().transaction(async (tx) => {
+    const [contact] = await tx
+      .select({ id: contacts.id })
+      .from(contacts)
+      .where(ownedContact(ownerId, contactId))
+      .for("key share");
+    if (!contact) return false;
+    await tx.insert(notes).values({ contactId, body });
+    return true;
+  });
 }
 
 // --- Keep in touch ----------------------------------------------------------
@@ -233,7 +289,7 @@ const overdueDays = sql<number>`(${today} - ${dueDate})`;
 
 // For the card. dueDate is a "YYYY-MM-DD" day in Moscow; currentYear tells
 // whether to print the year. Undefined when there is no contact with this id.
-export async function getKeepInTouchStatus(contactId: number) {
+export async function getKeepInTouchStatus(ownerId: string, contactId: number) {
   const [status] = await getDb()
     .select({
       frequency: contacts.keepInTouchFrequency,
@@ -242,7 +298,7 @@ export async function getKeepInTouchStatus(contactId: number) {
       currentYear: sql<number>`extract(year from ${today})::int`,
     })
     .from(contacts)
-    .where(eq(contacts.id, contactId))
+    .where(ownedContact(ownerId, contactId))
     .limit(1);
   return status;
 }
@@ -250,7 +306,7 @@ export async function getKeepInTouchStatus(contactId: number) {
 export type KeepInTouchStatus = NonNullable<Awaited<ReturnType<typeof getKeepInTouchStatus>>>;
 
 // Entries due today or earlier, from the selected group when supplied.
-export async function findContactsToReachOut(groupId?: number) {
+export async function findContactsToReachOut(ownerId: string, groupId?: number) {
   const db = getDb();
   return db
     .select({
@@ -262,9 +318,10 @@ export async function findContactsToReachOut(groupId?: number) {
     .from(contacts)
     .where(
       and(
+        eq(contacts.ownerId, ownerId),
         isNotNull(contacts.keepInTouchFrequency),
         sql`${overdueDays} >= 0`,
-        groupId === undefined ? undefined : belongsToGroup(db, groupId),
+        groupId === undefined ? undefined : belongsToGroup(db, ownerId, groupId),
       ),
     )
     .orderBy(asc(dueDate), asc(contacts.name), asc(contacts.id));
@@ -274,6 +331,7 @@ export type ReachOutItem = Awaited<ReturnType<typeof findContactsToReachOut>>[nu
 
 // Returns false when there is no contact with this id. null is "Не задано".
 export async function setKeepInTouchFrequency(
+  ownerId: string,
   contactId: number,
   frequency: KeepInTouchFrequency | null,
 ) {
@@ -287,20 +345,20 @@ export async function setKeepInTouchFrequency(
           ? null
           : sql`case when ${contacts.keepInTouchFrequency} = ${frequency} then ${contacts.keepInTouchSetAt} else now() end`,
     })
-    .where(eq(contacts.id, contactId))
+    .where(ownedContact(ownerId, contactId))
     .returning({ id: contacts.id });
   return updated.length > 0;
 }
 
 // Saves "contacted today" and returns the new mark and the one it replaced,
 // so that the mark can be undone. Undefined when there is no contact with this id.
-export async function markContacted(contactId: number) {
+export async function markContacted(ownerId: string, contactId: number) {
   const [marked] = await getDb()
     .update(contacts)
     // Milliseconds only: the moment travels to the browser as a JS Date and
     // back, and the undo looks for exactly this value
     .set({ lastContactedAt: sql`date_trunc('milliseconds', now())` })
-    .where(eq(contacts.id, contactId))
+    .where(ownedContact(ownerId, contactId))
     // old. and new. in RETURNING need Postgres 18
     .returning({
       markedAt: sql`new.last_contacted_at`.mapWith(contacts.lastContactedAt),
@@ -312,11 +370,16 @@ export async function markContacted(contactId: number) {
 // Puts back the mark that markContacted() replaced, but only while the field
 // still holds `markedAt`: a newer mark from another browser stays.
 // Returns false when nothing was put back.
-export async function undoMarkContacted(contactId: number, markedAt: Date, previous: Date | null) {
+export async function undoMarkContacted(
+  ownerId: string,
+  contactId: number,
+  markedAt: Date,
+  previous: Date | null,
+) {
   const restored = await getDb()
     .update(contacts)
     .set({ lastContactedAt: previous })
-    .where(and(eq(contacts.id, contactId), eq(contacts.lastContactedAt, markedAt)))
+    .where(and(ownedContact(ownerId, contactId), eq(contacts.lastContactedAt, markedAt)))
     .returning({ id: contacts.id });
   return restored.length > 0;
 }
