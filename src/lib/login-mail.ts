@@ -51,7 +51,8 @@ export function createLoginMailer() {
     return nodemailer.createTransport({
       ...common,
       host: "smtp.resend.com",
-      port: 465,
+      // The production server cannot reach Resend's default TLS port.
+      port: 2465,
       secure: true,
       auth: { user: "resend", pass: process.env.RESEND_API_KEY },
     });

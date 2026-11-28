@@ -1,6 +1,8 @@
+import nodemailer from "nodemailer";
 import { describe, expect, it, vi } from "vitest";
 
 import { migrateDatabase } from "../src/db/migrations";
+import { createLoginMailer } from "../src/lib/login-mail";
 import { openTestDatabase, testPostgresPort } from "./database";
 import { withTemporaryMailpit } from "./temporary-mailpit";
 
@@ -8,6 +10,21 @@ vi.mock("server-only", () => ({}));
 vi.mock("@/db", () => ({ getDb: () => database.db }));
 
 let database: Awaited<ReturnType<typeof openTestDatabase>>;
+
+it("uses the alternate secure SMTP port for Resend", () => {
+  const createTransport = vi.spyOn(nodemailer, "createTransport");
+  vi.stubEnv("CRM_MAIL_TRANSPORT", "resend");
+  vi.stubEnv("RESEND_API_KEY", "test-key");
+  try {
+    createLoginMailer();
+    expect(createTransport).toHaveBeenCalledWith(
+      expect.objectContaining({ host: "smtp.resend.com", port: 2465, secure: true }),
+    );
+  } finally {
+    createTransport.mockRestore();
+    vi.unstubAllEnvs();
+  }
+});
 
 describe.runIf(testPostgresPort > 0)("login email", () => {
   it("validates direct requests and sends the same confirmation for new and known addresses", async () => {
