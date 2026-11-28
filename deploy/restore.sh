@@ -4,12 +4,13 @@
 set -euo pipefail
 
 source "$(dirname -- "${BASH_SOURCE[0]}")/database.sh"
+configure_environment prod
 
 [[ $# -eq 1 ]] || fail "Usage: bash restore.sh <backup file>"
 backup_file="$(realpath -e -- "$1")"
 [[ -f "$backup_file" && -r "$backup_file" && -s "$backup_file" ]] || fail "Backup must be a readable, nonempty file."
 
-lock_production
+lock_environment
 
 # Compose requires a tag even to look up the existing app container.
 export APP_TAG=initial

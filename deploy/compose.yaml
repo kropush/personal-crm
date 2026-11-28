@@ -1,15 +1,8 @@
-# Production on the server: the database, one-off migrations and the app.
-# Started only by deploy.sh, which passes the server's .env and APP_TAG
-# (the image tag, that is the commit SHA the image was built from).
+# Shared by the prod and staging projects. deploy.sh selects the project,
+# environment file, public origin, local port and memory limits.
 
-name: prod
-
-# Container logs stay small: at most 3 files of 10 MB per container
 x-logging: &logging
-  driver: json-file
-  options:
-    max-size: 10m
-    max-file: "3"
+  driver: journald
 
 x-app-environment: &app-environment
   POSTGRES_HOST: postgres
@@ -22,6 +15,7 @@ services:
   postgres:
     image: postgres:18
     restart: unless-stopped
+    mem_limit: ${POSTGRES_MEMORY_LIMIT:-0}
     # terse: a rejected write is logged without DETAIL, which may hold the whole
     # row with a person's name, phone and email
     command: ["postgres", "-c", "log_error_verbosity=terse"]
@@ -47,6 +41,7 @@ services:
     image: ghcr.io/kropush/personal-crm:${APP_TAG:?APP_TAG is not set}
     command: ["node", "migrate.cjs"]
     profiles: [tools]
+    mem_limit: ${MIGRATION_MEMORY_LIMIT:-0}
     environment:
       <<: *app-environment
       CRM_OWNER_EMAIL: ${CRM_OWNER_EMAIL:-}
@@ -58,15 +53,16 @@ services:
   app:
     image: ghcr.io/kropush/personal-crm:${APP_TAG:?APP_TAG is not set}
     restart: unless-stopped
+    mem_limit: ${APP_MEMORY_LIMIT:-0}
     environment:
       <<: *app-environment
-      CRM_APP_URL: https://app.kropcrm.ru
+      CRM_APP_URL: ${APP_ORIGIN:-https://app.kropcrm.ru}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-}
       CRM_MAIL_TRANSPORT: resend
       RESEND_API_KEY: ${RESEND_API_KEY:-}
     ports:
       # Localhost only: the app is reachable from outside through nginx
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
     depends_on:
       postgres:
         condition: service_healthy
