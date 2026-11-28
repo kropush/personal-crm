@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Runs in GitHub Actions after the image is pushed to GHCR: copies deploy/ to
-# the server and runs deploy.sh there.
+# the server and runs deploy.sh there. Usage: ci-deploy.sh <prod|staging>
 #
 # Environment, set by .github/workflows/deploy.yml:
 #   DEPLOY_HOST, DEPLOY_USER   the server and the user to log in as
@@ -12,6 +12,15 @@
 set -euo pipefail
 
 remote_dir=/srv/personal-crm
+environment="${1:?Usage: ci-deploy.sh <prod|staging>}"
+if [[ "$environment" != prod && "$environment" != staging ]]; then
+  echo "ERROR: Unknown deployment environment: $environment" >&2
+  exit 1
+fi
+if [[ ! "$IMAGE_TAG" =~ ^[0-9a-f]{40}$ ]]; then
+  echo "ERROR: Expected a full commit SHA." >&2
+  exit 1
+fi
 
 install -d -m 700 ~/.ssh
 (umask 077 && printf '%s\n' "$DEPLOY_SSH_KEY" >~/.ssh/deploy_key)
@@ -20,15 +29,15 @@ printf '%s\n' "$DEPLOY_KNOWN_HOSTS" >~/.ssh/known_hosts
 server=(ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes
   -o StrictHostKeyChecking=yes "$DEPLOY_USER@$DEPLOY_HOST")
 
-echo "==> Copying deploy/ to the server"
-# A fresh copy every time, so files deleted from the repo disappear there too
-tar -czf - -C deploy . | "${server[@]}" "set -e
-  exec 9>>$remote_dir/.production.lock
-  flock -n 9 || { echo 'ERROR: A production deployment or restore is already in progress.' >&2; exit 1; }
-  rm -rf $remote_dir/deploy.new
-  mkdir $remote_dir/deploy.new
-  tar -xzf - -C $remote_dir/deploy.new
-  rm -rf $remote_dir/deploy
-  mv $remote_dir/deploy.new $remote_dir/deploy"
-
-printf '%s\n' "$REGISTRY_TOKEN" | "${server[@]}" "$remote_dir/deploy/deploy.sh $IMAGE_TAG"
+echo "==> Copying deploy/ for $environment"
+# The first line carries the token. The rest is the whole deploy directory.
+{
+  printf '%s\n' "$REGISTRY_TOKEN"
+  tar -czf - -C deploy .
+} | "${server[@]}" "set -e
+  IFS= read -r token
+  incoming=\$(mktemp -d '$remote_dir/.deploy.XXXXXXXX')
+  trap 'rm -rf -- \"\$incoming\"' EXIT
+  mkdir \"\$incoming/deploy\"
+  tar -xzf - -C \"\$incoming/deploy\"
+  printf '%s\\n' \"\$token\" | bash \"\$incoming/deploy/deploy.sh\" '$IMAGE_TAG' '$environment' --publish"

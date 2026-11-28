@@ -1,4 +1,4 @@
-# Push to main -> image tagged with the commit SHA -> GHCR -> the server.
+# Push to main -> one image tagged with the commit SHA -> staging and production.
 # What happens on the server is in deploy/deploy.sh.
 
 name: Deploy
@@ -6,11 +6,6 @@ name: Deploy
 on:
   push:
     branches: [main]
-
-# One deploy at a time, and a running deploy is never cancelled halfway
-concurrency:
-  group: deploy-prod
-  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -20,6 +15,9 @@ jobs:
   build:
     name: Build the image
     runs-on: ubuntu-latest
+    concurrency:
+      group: build-deploy-image
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v7
 
@@ -40,14 +38,22 @@ jobs:
           cache-to: type=gha,mode=max
 
   deploy:
-    name: Deploy to the server
+    name: Deploy to ${{ matrix.target }}
     needs: build
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [prod, staging]
+    concurrency:
+      group: deploy-${{ matrix.target }}
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v7
 
-      - run: deploy/ci-deploy.sh
+      - run: deploy/ci-deploy.sh "$DEPLOY_TARGET"
         env:
+          DEPLOY_TARGET: ${{ matrix.target }}
           DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
           DEPLOY_USER: ${{ vars.DEPLOY_USER }}
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
